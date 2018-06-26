@@ -39,3 +39,9 @@ class BillingRule(models.Model):
     is_active = models.BooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_active', ]),
+            models.Index(fields=['time_start', ]),
+        ]
