@@ -29,3 +29,13 @@ class Call(models.Model):
 
     def __str__(self):
         return self.call_code
+
+
+class BillingRule(models.Model):
+    time_start = models.TimeField()
+    time_end = models.TimeField()
+    fixed_charge = models.DecimalField(max_digits=10, decimal_places=2)
+    by_minute_charge = models.DecimalField(max_digits=10, decimal_places=2)
+    is_active = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
