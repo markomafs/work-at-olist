@@ -1,4 +1,7 @@
 from django.db import models
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PhoneNumber(models.Model):
@@ -45,3 +48,12 @@ class BillingRule(models.Model):
             models.Index(fields=['is_active', ]),
             models.Index(fields=['time_start', ]),
         ]
+
+    @staticmethod
+    def get_active_rules():
+        """ This method returns all billing rules with is_active equals True
+        """
+        active_rules = BillingRule.objects.filter(is_active=True)
+        logger.debug('Fetched Billing Rules', extra=active_rules.values())
+
+        return active_rules
