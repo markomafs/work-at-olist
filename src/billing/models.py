@@ -57,3 +57,27 @@ class BillingRule(models.Model):
         logger.debug('Fetched Billing Rules', extra=active_rules.values())
 
         return active_rules
+
+
+class Billing(models.Model):
+    fk_call = models.ForeignKey(Call, on_delete=models.PROTECT)
+    fk_billing_rule = models.ForeignKey(BillingRule, on_delete=models.PROTECT)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    hours = models.IntegerField()
+    minutes = models.IntegerField()
+    seconds = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('fk_call', 'fk_billing_rule',)
+
+    @staticmethod
+    def is_hour_between(start, end, check_time):
+        is_between = False
+
+        is_between |= start <= check_time <= end
+        is_between |= end < start and \
+            (start <= check_time or check_time <= end)
+
+        return is_between
