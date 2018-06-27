@@ -24,6 +24,10 @@ TBD
 
 TBD
 
+## Technical Documentation
+
+For further technical information, check [docs](docs/README.md)
+
 ## Built With
 
 * [Django](https://docs.djangoproject.com/en/2.0/) - The web framework used
