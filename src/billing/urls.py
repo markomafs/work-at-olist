@@ -1,8 +1,10 @@
-from django.urls import path
-
+from django.conf.urls import url, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
-urlpatterns = [
-    path('call/', views.index, name='call'),
+router = DefaultRouter()
+router.register(r'phone', views.PhoneNumberViewSet)
 
+urlpatterns = [
+    url(r'^', include(router.urls)),
 ]
