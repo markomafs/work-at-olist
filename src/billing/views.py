@@ -1,10 +1,27 @@
-from django.http import HttpResponse
 from django.utils import timezone
-from .models import PhoneNumber, Call
+from django.http import HttpResponse
+from rest_framework import permissions
+from rest_framework import renderers
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from time import sleep
+
+from .serializers import PhoneNumberSerializer
+from .models import PhoneNumber, Call
+
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class PhoneNumberViewSet(viewsets.ModelViewSet):
+    """
+    This endpoint presents phone number
+    """
+    queryset = PhoneNumber.objects.all()
+    serializer_class = PhoneNumberSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 def index(request):
