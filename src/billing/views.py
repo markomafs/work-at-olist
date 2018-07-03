@@ -37,14 +37,19 @@ class CallView(views.APIView):
         :return: JSON 
         """
         logger.debug('Request Call', extra={'id': pk})
-        call = Call.objects.get(request=pk)
+        call = Call.objects.get(id=pk)
         if call is None:
             return HttpResponseNotFound()
         logger.debug(call.fk_destination_phone_number.formatted())
+
         data = {
-            'phone_number': call.fk_destination_phone_number.formatted(),
-            'type': Call.TYPE_START
+            'destination': call.fk_destination_phone_number.formatted(),
+            'origin': call.fk_origin_phone_number.formatted(),
+            'type': Call.TYPE_START,
+            'timestamp': call.started_at,
+            'call_identifier': call.call_code,
         }
+        logger.debug(call.started_at)
         serializer = CallSerializer(data=data)
         if serializer.is_valid():
             result = serializer.data
@@ -56,13 +61,14 @@ class CallView(views.APIView):
         return Response('Ok')
 
 
-# class CallListView(CallView):
-#     def get(self, request, **kwargs):
-#         """
-#         GET Call Registers List
-#         """
-#         logger.debug('Request Call List')
-#         return Response('OK List')
+class CallListView(CallView):
+    def get(self, request, **kwargs):
+        """
+        GET Call Registers List
+        """
+        logger.debug('Request Call List')
+        return Response('OK List')
+
 
 def index(request):
 
