@@ -1,17 +1,17 @@
 from django.utils import timezone
-from django.http import HttpResponse
-from rest_framework import permissions
-from rest_framework import renderers
-from rest_framework import viewsets
+from django.http import (
+    HttpResponse, HttpResponseBadRequest, HttpResponseNotFound)
+from rest_framework import permissions, renderers, views, viewsets
+
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from time import sleep
 
-from .serializers import PhoneNumberSerializer
+from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call
 
 import logging
-
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -23,6 +23,46 @@ class PhoneNumberViewSet(viewsets.ModelViewSet):
     serializer_class = PhoneNumberSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+
+class CallView(views.APIView):
+    """
+    This endpoint presents Registered Call 
+    """
+
+    def get(self, request, pk):
+        """
+        GET Call Register By id
+        :param request: 
+        :param pk: 
+        :return: JSON 
+        """
+        logger.debug('Request Call', extra={'id': pk})
+        call = Call.objects.get(request=pk)
+        if call is None:
+            return HttpResponseNotFound()
+        logger.debug(call.fk_destination_phone_number.formatted())
+        data = {
+            'phone_number': call.fk_destination_phone_number.formatted(),
+            'type': Call.TYPE_START
+        }
+        serializer = CallSerializer(data=data)
+        if serializer.is_valid():
+            result = serializer.data
+            return Response(result)
+        else:
+            logger.debug(serializer._errors)
+            logger.debug('Invalid Serializer Data')
+
+        return Response('Ok')
+
+
+# class CallListView(CallView):
+#     def get(self, request, **kwargs):
+#         """
+#         GET Call Registers List
+#         """
+#         logger.debug('Request Call List')
+#         return Response('OK List')
 
 def index(request):
 

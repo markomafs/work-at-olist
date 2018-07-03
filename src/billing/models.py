@@ -11,13 +11,33 @@ class PhoneNumber(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.phone_number
+        return self.formatted()
 
     class Meta:
         unique_together = ('area_code', 'phone_number',)
 
+    def formatted(self):
+        formatted_number = '({area_code}) {phone_1}-{phone_2}'.format(
+            phone_1=self.phone_number[0:4],
+            phone_2=self.phone_number[4:9],
+            area_code=self.area_code,
+        )
+        logger.debug('Phone Number Formatted', extra={
+            'output': formatted_number,
+            'area_code': self.area_code,
+            'phone_number': self.phone_number,
+        })
+        return formatted_number
+
 
 class Call(models.Model):
+    TYPE_START = 'start'
+    TYPE_END = 'end'
+    TYPE_CHOICES = (
+        TYPE_START,
+        TYPE_END
+    )
+
     fk_origin_phone_number = models.ForeignKey(PhoneNumber,
                                                on_delete=models.PROTECT,
                                                related_name='origin')
