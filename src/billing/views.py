@@ -67,38 +67,3 @@ class CallView(views.APIView):
             logger.error(serializer._errors)
             logger.error('Invalid Serializer Data')
             return HttpResponseForbidden({'error': 'Invalid Call Data'})
-
-
-def index(request):
-
-    origin_area = '11'
-    origin_phone_number = '972577063'
-
-    destination_area = '11'
-    destination_phone_number = '996465321'
-
-    origin = get_number_object(origin_area, origin_phone_number)
-    destination = get_number_object(destination_area, destination_phone_number)
-
-    call_code = 'test_function'
-    started_at = timezone.now()
-    sleep(2)
-    ended_at = timezone.now()
-    logger.debug('Registering Call', extra={
-        'call_code': call_code,
-        'action': 'create'
-    })
-    c = Call(
-        started_at=started_at,
-        call_code=call_code,
-        fk_origin_phone_number=origin,
-        fk_destination_phone_number=destination,
-        ended_at=ended_at,
-    )
-    c.save()
-    id_call = c.id
-    logger.debug('Registered Call', extra={
-        'id_call': id_call,
-    })
-
-    return HttpResponse("Registered Call {}".format(id_call))
