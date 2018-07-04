@@ -1,7 +1,9 @@
 from django.utils import timezone
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseNotFound)
-from rest_framework import permissions, renderers, views, viewsets
+    HttpResponse, HttpResponseForbidden, HttpResponseNotFound,
+    HttpResponseBadRequest
+)
+from rest_framework import permissions, renderers, views, viewsets, generics
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -24,6 +26,13 @@ class PhoneNumberViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
+class CallViewSet(generics.CreateAPIView):
+    """
+    This endpoint Register Calls to be billed 
+    """
+    serializer_class = CallSerializer
+
+
 class CallView(views.APIView):
     """
     This endpoint presents Registered Call 
@@ -40,9 +49,9 @@ class CallView(views.APIView):
         call = Call.objects.get(id=pk)
         if call is None:
             return HttpResponseNotFound()
-        logger.debug(call.fk_destination_phone_number.formatted())
 
         data = {
+            'id': call.id,
             'destination': call.fk_destination_phone_number.formatted(),
             'origin': call.fk_origin_phone_number.formatted(),
             'type': Call.TYPE_START,
@@ -55,34 +64,12 @@ class CallView(views.APIView):
             result = serializer.data
             return Response(result)
         else:
-            logger.debug(serializer._errors)
-            logger.debug('Invalid Serializer Data')
-
-        return Response('Ok')
-
-
-class CallListView(CallView):
-    def get(self, request, **kwargs):
-        """
-        GET Call Registers List
-        """
-        logger.debug('Request Call List')
-        return Response('OK List')
+            logger.error(serializer._errors)
+            logger.error('Invalid Serializer Data')
+            return HttpResponseForbidden({'error': 'Invalid Call Data'})
 
 
 def index(request):
-
-    def get_number_object(area, phone_number):
-        phone_number, created = PhoneNumber.objects.get_or_create(
-            area_code=area,
-            phone_number=phone_number
-        )
-        if created is True:
-            logger.debug('Created Phone Number', extra={
-                'area_code': area,
-                'phone_number': phone_number
-            })
-        return phone_number
 
     origin_area = '11'
     origin_phone_number = '972577063'

@@ -17,9 +17,8 @@ class PhoneNumber(models.Model):
         unique_together = ('area_code', 'phone_number',)
 
     def formatted(self):
-        formatted_number = '({area_code}) {phone_1}-{phone_2}'.format(
-            phone_1=self.phone_number[0:4],
-            phone_2=self.phone_number[4:9],
+        formatted_number = '{area_code}{phone_number}'.format(
+            phone_number=self.phone_number,
             area_code=self.area_code,
         )
         logger.debug('Phone Number Formatted', extra={
@@ -28,6 +27,22 @@ class PhoneNumber(models.Model):
             'phone_number': self.phone_number,
         })
         return formatted_number
+
+    @staticmethod
+    def get_instance(full_number):
+        full_number = str(full_number)
+        area_code = full_number[:2]
+        number = full_number[2:]
+        phone_number, created = PhoneNumber.objects.get_or_create(
+            area_code=area_code,
+            phone_number=number
+        )
+        if created is True:
+            logger.debug('Created Phone Number', extra={
+                'area_code': area_code,
+                'phone_number': phone_number
+            })
+        return phone_number
 
 
 class Call(models.Model):
@@ -46,7 +61,7 @@ class Call(models.Model):
                                                     related_name='destination')
     call_code = models.CharField(max_length=200)
     started_at = models.DateTimeField('call started')
-    ended_at = models.DateTimeField('call ended')
+    ended_at = models.DateTimeField('call ended', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
