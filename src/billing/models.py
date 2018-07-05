@@ -106,7 +106,9 @@ class BillingRule(models.Model):
         """ This method returns all billing rules with is_active equals True
         """
         active_rules = BillingRule.objects.filter(is_active=True)
-        logger.debug('Fetched Billing Rules', extra=active_rules.values())
+
+        for rule in active_rules.values():
+            logger.debug('Fetched Billing Rule', extra=rule)
 
         return active_rules
 
