@@ -68,6 +68,23 @@ class Call(models.Model):
     def __str__(self):
         return self.call_code
 
+    # Creating On The Fly Attributes
+    def _get_type(self):
+        return self.TYPE_START
+
+    def _set_type(self, type):
+        pass
+
+    type = property(_get_type, _set_type)
+
+    def _get_timestamp(self):
+        return self.created_at
+
+    def _set_timestamp(self, timestamp):
+        self.created_at = timestamp
+
+    timestamp = property(_get_timestamp, _set_timestamp)
+
 
 class BillingRule(models.Model):
     time_start = models.TimeField()
