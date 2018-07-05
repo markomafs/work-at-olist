@@ -29,7 +29,7 @@ class CallSerializer(serializers.Serializer):
     )
     type = serializers.ChoiceField(choices=Call.TYPE_CHOICES)
     timestamp = serializers.DateTimeField()
-    call_identifier = serializers.CharField(max_length=200)
+    call_code = serializers.CharField(max_length=200)
 
     def create(self, validated_data):
         logger.debug(validated_data)
@@ -57,5 +57,13 @@ class CallSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         id = validated_data['id']
         call = Call.objects.get(id=id)
-        call.ended_at = validated_data['timestamp']
-        pass
+        if validated_data['timestamp'] > call.started_at:
+            call.ended_at = validated_data['timestamp']
+            call.save()
+        else:
+            logger.warning('Received a Invalid Value', extra={
+                'field': 'ended_at',
+                'entity':  'Call',
+                'value': validated_data['timestamp']
+            })
+        return instance
