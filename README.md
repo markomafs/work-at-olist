@@ -3,7 +3,7 @@ Service responsible for receive call's information and calculate billing
 
 [![Build Status](https://circleci.com/gh/markomafs/work-at-olist.svg?style=shield)](https://circleci.com/gh/markomafs/work-at-olist)
 [![CodeFactor](https://www.codefactor.io/repository/github/markomafs/work-at-olist/badge)](https://www.codefactor.io/repository/github/markomafs/work-at-olist)
-[![codecov](https://codecov.io/gh/markomafs/work-at-olist/branch/master/graph/badge.svg)](https://codecov.io/gh/r-lib/objectable)
+[![codecov](https://codecov.io/gh/markomafs/work-at-olist/branch/master/graph/badge.svg)](https://codecov.io/gh/markomafs/work-at-olist)
 
 ## Getting Started
 
