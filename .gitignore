@@ -3,3 +3,5 @@ venv/
 *.pyc
 __pycache__/
 src/test-results/*
+.pytest_cache/
+src/.coverage

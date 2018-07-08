@@ -44,13 +44,12 @@ jobs:
       # this example uses Django's built-in test-runner
       # other common Python testing frameworks include pytest and nose
       # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
           name: run tests
           command: |
             . venv/bin/activate
             cd src/
-            python manage.py test
+            pytest --junitxml=test-results/junit/junit.xml --cov=billing/ --cov-report html:test-results/coverage/html --cov-report xml:test-results/coverage/coverage.xml
 
       - store_test_results:
           path: src/test-results
@@ -58,3 +57,9 @@ jobs:
       - store_artifacts:
           path: src/test-results
           destination: test-results
+
+      - run:
+          name: Send CodeCov Status
+          command: |
+            cd src/test-results/
+            bash <(curl -s https://codecov.io/bash)
