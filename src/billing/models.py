@@ -70,7 +70,10 @@ class Call(models.Model):
 
     # Creating On The Fly Attributes (to adapt to call request payload)
     def _get_type(self):
-        return self.TYPE_START
+        """
+        type field created only for Request and Response purpose
+        """
+        return self.TYPE_START if self.ended_at is None else self.TYPE_END
 
     def _set_type(self, type_name):
         pass
@@ -78,6 +81,9 @@ class Call(models.Model):
     type = property(_get_type, _set_type)
 
     def _get_timestamp(self):
+        """
+        timestamp field created only for Request and Response purpose
+        """
         return self.started_at if self.ended_at is None else self.ended_at
 
     def _set_timestamp(self, timestamp):

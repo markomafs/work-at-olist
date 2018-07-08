@@ -85,3 +85,12 @@ default_end = datetime(2018, 6, 9)
 def test_timestamp_property(started, ended, expected):
     call = Call(started_at=started, ended_at=ended)
     assert call.timestamp == expected
+
+
+@pytest.mark.parametrize("ended, expected_type", [
+    (default_end, Call.TYPE_END),
+    (None, Call.TYPE_START),
+])
+def test_type_property(ended, expected_type):
+    call = Call(ended_at=ended)
+    assert call.type == expected_type
