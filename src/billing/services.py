@@ -11,4 +11,5 @@ class BillingService:
     """
 
     def create_billing(self, call=Call):
-        return True
+        billing = Billing()
+        return billing
