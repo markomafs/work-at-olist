@@ -1,6 +1,7 @@
 from django.test import TestCase
-from .models import PhoneNumber, BillingRule, Billing
-from datetime import time
+from .models import PhoneNumber, BillingRule, Billing, Call
+from datetime import time, datetime
+import pytest
 
 
 class PhoneNumberModelTests(TestCase):
@@ -69,3 +70,18 @@ class BillingModelTests(TestCase):
                 check_time=time(2, 0, 0)
             )
         )
+
+# class CallModelTest(TestCase):
+default_start = datetime(2018, 6, 8)
+default_end = datetime(2018, 6, 9)
+
+
+@pytest.mark.parametrize("started, ended, expected", [
+    (default_start, None, default_start),
+    (default_start, default_end, default_end),
+    (None, None, None),
+    (None, default_end, default_end),
+])
+def test_timestamp_property(started, ended, expected):
+    call = Call(started_at=started, ended_at=ended)
+    assert call.timestamp == expected
