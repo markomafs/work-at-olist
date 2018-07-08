@@ -20,12 +20,12 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
 class CallSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     origin = serializers.IntegerField(
-        min_value=1000000000, max_value=99999999999, allow_null=True,
-        required=False
+        min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
+        allow_null=True, required=False, read_only=True
     )
     destination = serializers.IntegerField(
-        min_value=1000000000, max_value=99999999999, allow_null=True,
-        required=False
+        min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
+        allow_null=True, required=False
     )
     type = serializers.ChoiceField(choices=Call.TYPE_CHOICES)
     timestamp = serializers.DateTimeField()
@@ -37,9 +37,10 @@ class CallSerializer(serializers.Serializer):
         call_id = validated_data['id']
         try:
             Call.objects.get(id=call_id)
+            logger.warning('Call Already Exists', extra={'id': call_id})
             return validated_data
         except Call.DoesNotExist:
-            logger.debug('Call Does Not Exists', extra={'id': call_id})
+            pass
 
         origin = PhoneNumber.get_instance(validated_data['origin'])
         destination = PhoneNumber.get_instance(validated_data['destination'])
@@ -48,7 +49,7 @@ class CallSerializer(serializers.Serializer):
             fk_origin_phone_number=origin,
             fk_destination_phone_number=destination,
             started_at=validated_data['timestamp'],
-            call_code=validated_data['call_identifier'],
+            call_code=validated_data['call_code'],
         )
         call.save()
         validated_data['id'] = call.id

@@ -1,13 +1,22 @@
 from django.test import TestCase
 from .models import PhoneNumber, BillingRule, Billing, Call
+from .serializers import CallSerializer
 from datetime import time, datetime
 import pytest
+import uuid
+import random
+
 
 
 class PhoneNumberModelTests(TestCase):
     def test_phone_number_instance(self):
         call = PhoneNumber()
         self.assertIsInstance(call, PhoneNumber)
+
+    @staticmethod
+    def create_number():
+        phone = random.randint(PhoneNumber.MIN_PHONE, PhoneNumber.MAX_PHONE)
+        return str(phone)
 
 
 class BillingRuleModelTests(TestCase):
@@ -94,3 +103,73 @@ def test_timestamp_property(started, ended, expected):
 def test_type_property(ended, expected_type):
     call = Call(ended_at=ended)
     assert call.type == expected_type
+
+
+class CallSerializerTest(TestCase):
+    call_id = 1
+
+    def test_call_serializer(self):
+        # Testing Creating
+        create = self.create_data(self.call_id)
+        serializer = CallSerializer(data=create)
+        assert serializer.is_valid()
+        serializer.create(serializer.data)
+
+        # Testing Update
+        call = Call.objects.get(id=self.call_id)
+        update = CallSerializer(data=self.update_data(self.call_id))
+        assert update.is_valid()
+        update_data = dict(
+            list(update.validated_data.items())
+        )
+        serializer.update(call, update_data)
+
+        # Validating Success
+        call = Call.objects.get(id=self.call_id)
+        assert call.started_at == create['timestamp'].replace(
+            tzinfo=call.started_at.tzinfo)
+        assert call.ended_at == update_data['timestamp']
+
+    @staticmethod
+    def create_data(
+            call_id, origin=None, destination=None,
+            call_code=None, timestamp=None
+    ):
+        if origin is None:
+            origin = PhoneNumberModelTests.create_number()
+
+        if destination is None:
+            destination = PhoneNumberModelTests.create_number()
+
+        if call_code is None:
+            # see https://docs.python.org/3.6/library/uuid.html
+            call_code = str(uuid.uuid4())
+
+        if timestamp is None:
+            timestamp = datetime.now()
+
+        data = {
+            'id': call_id,
+            'call_code': call_code,
+            'origin': origin,
+            'destination': destination,
+            'type': Call.TYPE_START,
+            'timestamp': timestamp,
+        }
+        return data
+
+    @staticmethod
+    def update_data(call_id, call_code=None, timestamp=None):
+        if call_code is None:
+            call_code = str(uuid.uuid4())
+
+        if timestamp is None:
+            timestamp = datetime.now()
+
+        data = {
+            'id': call_id,
+            'call_code': call_code,
+            'type': Call.TYPE_END,
+            'timestamp': timestamp,
+        }
+        return data

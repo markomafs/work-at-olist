@@ -5,6 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 class PhoneNumber(models.Model):
+    MIN_PHONE = 1000000000
+    MAX_PHONE = 99999999999
     area_code = models.CharField(max_length=2)
     phone_number = models.CharField(max_length=9)
     created_at = models.DateTimeField(auto_now_add=True)
