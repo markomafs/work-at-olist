@@ -50,7 +50,7 @@ jobs:
           command: |
             . venv/bin/activate
             cd src/
-            pytest --junitxml=test-results/billing.xml
+            pytest --junitxml=test-results/junit.xml
 
       - store_test_results:
           path: src/test-results
