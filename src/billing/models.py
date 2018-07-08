@@ -72,7 +72,7 @@ class Call(models.Model):
     def _get_type(self):
         return self.TYPE_START
 
-    def _set_type(self, type):
+    def _set_type(self, type_name):
         pass
 
     type = property(_get_type, _set_type)

@@ -55,8 +55,8 @@ class CallSerializer(serializers.Serializer):
         return validated_data
 
     def update(self, instance, validated_data):
-        id = validated_data['id']
-        call = Call.objects.get(id=id)
+        call_id = validated_data['id']
+        call = Call.objects.get(id=call_id)
         if validated_data['timestamp'] > call.started_at:
             call.ended_at = validated_data['timestamp']
             call.save()
