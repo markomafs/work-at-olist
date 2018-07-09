@@ -1,11 +1,11 @@
 from django.test import TestCase
 from .models import PhoneNumber, BillingRule, Billing, Call
 from .serializers import CallSerializer
+from .services import BillingService
 from datetime import time, datetime
 import pytest
 import uuid
 import random
-
 
 
 class PhoneNumberModelTests(TestCase):
@@ -59,6 +59,20 @@ class BillingRuleModelTests(TestCase):
         self.assertEqual(
             len(available_rules), 2,
             msg='Should Retrieve 2 rules'
+        )
+
+    @staticmethod
+    def create_rule(
+            rule_id, time_start=None, time_end=None, fixed_charge=0,
+            by_minute_charge=0, is_active=True
+    ):
+        return BillingRule(
+            id=rule_id,
+            time_start=time_start,
+            time_end=time_end,
+            fixed_charge=fixed_charge,
+            by_minute_charge=by_minute_charge,
+            is_active=is_active,
         )
 
 
@@ -173,3 +187,33 @@ class CallSerializerTest(TestCase):
             'timestamp': timestamp,
         }
         return data
+
+rule_one = 1
+rule_two = 2
+rules = [
+    BillingRuleModelTests.create_rule(
+        rule_id=rule_one, time_start=time(22, 0, 1), time_end=time(8, 0, 0)
+    ),
+    BillingRuleModelTests.create_rule(
+        rule_id=rule_two, time_start=time(8, 0, 1), time_end=time(22, 0, 0)
+    ),
+]
+
+
+# class BillingServiceTest(TestCase):
+@pytest.mark.parametrize(
+    "call_start, call_end, billing_rules, expected_rule_ids",
+    [
+        (
+            datetime(2018, 7, 8, 23, 20, 10), datetime(2018, 7, 9, 3, 20, 10),
+            rules, [rule_one]
+        ),
+    ]
+)
+def test_simples_billings_on_call(
+        call_start, call_end, billing_rules, expected_rule_ids):
+    call = Call(started_at=call_start, ended_at=call_end)
+    service = BillingService()
+    rules_dict = service.get_billings_on_call(
+        call=call, billing_rules=billing_rules)
+    assert set(rules_dict.keys()) == set(expected_rule_ids)
