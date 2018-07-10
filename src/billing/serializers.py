@@ -62,11 +62,7 @@ class CallSerializer(serializers.Serializer):
         if validated_data['timestamp'] > call.started_at:
             call.ended_at = validated_data['timestamp']
             call.save()
-            BillingService().create_billings(call)
-            logger.debug('Billing Created', extra={
-                # 'billing': billing.id,
-                'call': call.id
-            })
+            # BillingService().create_billings(call)
         else:
             logger.warning('Received a Invalid Value', extra={
                 'field': 'ended_at',

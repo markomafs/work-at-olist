@@ -20,7 +20,6 @@ class PhoneNumberModelTests(TestCase):
 
 
 class BillingRuleModelTests(TestCase):
-
     def setUp(self):
         BillingRule.objects.create(
             id=1,
@@ -188,6 +187,7 @@ class CallSerializerTest(TestCase):
         }
         return data
 
+
 rule_one = 1
 rule_two = 2
 rules = [
@@ -202,18 +202,98 @@ rules = [
 
 # class BillingServiceTest(TestCase):
 @pytest.mark.parametrize(
-    "call_start, call_end, billing_rules, expected_rule_ids",
+    "call_start, call_end, billing_rules, expected_billings",
     [
         (
-            datetime(2018, 7, 8, 23, 20, 10), datetime(2018, 7, 9, 3, 20, 10),
-            rules, [rule_one]
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 12, 3, 20, 10),
+                rules, 2
+        ),
+        (
+                datetime(2018, 7, 9, 9, 20, 10),
+                datetime(2018, 7, 9, 17, 20, 10),
+                rules, 1
+        ),
+        (
+                datetime(2018, 7, 8, 10, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                rules, 2
+        ),
+        (
+                datetime(2018, 7, 9, 9, 20, 10),
+                datetime(2018, 7, 9, 17, 20, 10),
+                rules, 1
         ),
     ]
 )
 def test_simples_billings_on_call(
-        call_start, call_end, billing_rules, expected_rule_ids):
+        call_start, call_end, billing_rules, expected_billings):
     call = Call(started_at=call_start, ended_at=call_end)
     service = BillingService()
-    rules_dict = service.get_billings_on_call(
-        call=call, billing_rules=billing_rules)
-    assert set(rules_dict.keys()) == set(expected_rule_ids)
+    service._split_billings_for_call(call=call, rules=billing_rules)
+    assert len(service.billings) == expected_billings
+
+
+@pytest.mark.parametrize(
+    "rule_start, rule_end, call_start, call_end, expected_result",
+    [
+        (  # Full Call between rule start and end
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 50, 10),
+                datetime(2018, 7, 8, 23, 58, 10),
+                True,
+        ),
+        (  # Call started before rule but ends between
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 20, 50, 10),
+                datetime(2018, 7, 8, 23, 52, 10),
+                False,
+        ),
+        (  # Call start between rule start but ends after
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 50, 10),
+                datetime(2018, 7, 9, 7, 52, 10),
+                True,
+        ),
+        (  # Call start before rule and ends after rule
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 21, 50, 10),
+                datetime(2018, 7, 10, 23, 52, 10),
+                False,
+        ),
+        (   # Call ends before rule start
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 20, 50, 10),
+                datetime(2018, 7, 8, 21, 52, 10),
+                False,
+        ),
+        (   # Call start after rule ends
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 10, 23, 50, 10),
+                datetime(2018, 7, 10, 23, 52, 10),
+                False,
+        ),
+        (  # Call start at the same time as rule start
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                True,
+        ),
+    ]
+)
+def test_if_time_is_matching(
+        call_start, call_end, rule_start, rule_end, expected_result):
+    result = BillingService._time_is_matching(
+        call_start=call_start,
+        call_end=call_end,
+        rule_start=rule_start,
+        rule_end=rule_end,
+    )
+    assert result == expected_result
