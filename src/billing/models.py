@@ -128,10 +128,15 @@ class Billing(models.Model):
     hours = models.IntegerField()
     minutes = models.IntegerField()
     seconds = models.IntegerField()
+    year = models.IntegerField(default=None)
+    month = models.IntegerField(default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        index_together = [
+            ["year", "month"],
+        ]
         unique_together = ('fk_call', 'fk_billing_rule',)
 
     @staticmethod
