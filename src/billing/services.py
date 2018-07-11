@@ -18,12 +18,14 @@ class BillingService:
 
     def create_billings(self, call=Call):
         available_rules = BillingRule.get_active_rules()
+
         self._split_billings_for_call(
             call=copy.copy(call),
             rules=available_rules,
         )
         for billing in self.billings.values():
-            pass
+            billing.calculate()
+            billing.save()
         return self.billings
 
     def _split_billings_for_call(self, call, rules):
