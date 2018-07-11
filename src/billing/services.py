@@ -17,7 +17,9 @@ class BillingService:
         # Billing grouped by rule id
         self.billings = {}
 
-    def create_billings(self, call=Call):
+    def create_billings(self, call: Call):
+        logger.debug('Creating Billing from Call', extra={'call': call.id})
+
         available_rules = BillingRule.get_active_rules()
 
         self._split_billings_for_call(
