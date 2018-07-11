@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class PhoneNumber(models.Model):
         if created is True:
             logger.debug('Created Phone Number', extra={
                 'area_code': area_code,
-                'phone_number': phone_number
+                'phone_number': str(phone_number),
             })
         return phone_number
 
@@ -116,7 +117,11 @@ class BillingRule(models.Model):
         active_rules = BillingRule.objects.filter(is_active=True)
 
         for rule in active_rules.values():
-            logger.debug('Fetched Billing Rule', extra=rule)
+            logger.debug('Fetched Billing Rule', extra={
+                'id': rule['id'],
+                'start': str(rule['time_start']),
+                'end': str(rule['time_end']),
+            })
 
         return active_rules
 
@@ -128,18 +133,32 @@ class Billing(models.Model):
     hours = models.IntegerField()
     minutes = models.IntegerField()
     seconds = models.IntegerField()
+    year = models.IntegerField(default=None)
+    month = models.IntegerField(default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        index_together = [
+            ["year", "month"],
+        ]
         unique_together = ('fk_call', 'fk_billing_rule',)
 
-    @staticmethod
-    def is_hour_between(start, end, check_time):
-        is_between = False
+    def calculate(self, fixed_charge=0.0):
+        billing_minutes = self.calculate_time(seconds=self.seconds)
+        charge = float(self.fk_billing_rule.by_minute_charge)
+        cost = (charge * billing_minutes) + fixed_charge
+        self.amount = cost
+        self.setup_date(self.fk_call.ended_at)
 
-        is_between |= start <= check_time <= end
-        is_between |= end < start and \
-            (start <= check_time or check_time <= end)
+    def calculate_time(self, seconds: int) -> int:
+        billing_minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(billing_minutes, 60)
+        self.hours = hours
+        self.minutes = minutes
+        self.seconds = seconds
+        return billing_minutes
 
-        return is_between
+    def setup_date(self, billing_date: datetime):
+        self.year = billing_date.year
+        self.month = billing_date.month

@@ -1,11 +1,12 @@
 from django.test import TestCase
 from .models import PhoneNumber, BillingRule, Billing, Call
 from .serializers import CallSerializer
+from .services import BillingService
 from datetime import time, datetime
 import pytest
 import uuid
 import random
-
+import pytz
 
 
 class PhoneNumberModelTests(TestCase):
@@ -20,24 +21,8 @@ class PhoneNumberModelTests(TestCase):
 
 
 class BillingRuleModelTests(TestCase):
-
     def setUp(self):
-        BillingRule.objects.create(
-            id=1,
-            time_start=time(6, 0, 0),
-            time_end=time(22, 0, 0),
-            fixed_charge=0.36,
-            by_minute_charge=0.09,
-            is_active=True,
-        )
-        BillingRule.objects.create(
-            id=2,
-            time_start=time(22, 0, 0),
-            time_end=time(6, 0, 0),
-            fixed_charge=0.36,
-            by_minute_charge=0.0,
-            is_active=True,
-        )
+        # id 1 and 2 was created By Migrations
         BillingRule.objects.create(
             id=3,
             time_start=time(6, 0, 0),
@@ -48,7 +33,7 @@ class BillingRuleModelTests(TestCase):
         )
 
     def tearDown(self):
-        BillingRule.objects.filter(id__in=[1, 2, 3, ]).delete()
+        BillingRule.objects.get(id=3).delete()
 
     def test_active_billing_rules(self):
         """ this should test get_active_rules from BillingRule Class
@@ -61,24 +46,20 @@ class BillingRuleModelTests(TestCase):
             msg='Should Retrieve 2 rules'
         )
 
-
-class BillingModelTests(TestCase):
-    def test_hours_between(self):
-        self.assertTrue(
-            Billing.is_hour_between(
-                start=time(6, 0, 0),
-                end=time(8, 0, 0),
-                check_time=time(7, 0, 0)
-            )
+    @staticmethod
+    def create_rule(
+            rule_id, time_start=None, time_end=None, fixed_charge=0,
+            by_minute_charge=0, is_active=True
+    ):
+        return BillingRule(
+            id=rule_id,
+            time_start=time_start,
+            time_end=time_end,
+            fixed_charge=fixed_charge,
+            by_minute_charge=by_minute_charge,
+            is_active=is_active,
         )
 
-        self.assertTrue(
-            Billing.is_hour_between(
-                start=time(22, 0, 0),
-                end=time(8, 0, 0),
-                check_time=time(2, 0, 0)
-            )
-        )
 
 # class CallModelTest(TestCase):
 default_start = datetime(2018, 6, 8)
@@ -173,3 +154,126 @@ class CallSerializerTest(TestCase):
             'timestamp': timestamp,
         }
         return data
+
+
+rule_one = 1
+rule_two = 2
+rules = [
+    BillingRuleModelTests.create_rule(
+        rule_id=rule_one, time_start=time(22, 0, 1), time_end=time(8, 0, 0)
+    ),
+    BillingRuleModelTests.create_rule(
+        rule_id=rule_two, time_start=time(8, 0, 1), time_end=time(22, 0, 0)
+    ),
+]
+
+
+# class BillingServiceTest(TestCase):
+@pytest.mark.parametrize(
+    "call_start, call_end, billing_rules, expected_billings",
+    [
+        (
+                datetime(2018, 7, 8, 23, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 12, 3, 20, 10, tzinfo=pytz.UTC),
+                rules, 2
+        ),
+        (
+                datetime(2018, 7, 9, 9, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 17, 20, 10, tzinfo=pytz.UTC),
+                rules, 1
+        ),
+        (
+                datetime(2018, 7, 8, 10, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 3, 20, 10, tzinfo=pytz.UTC),
+                rules, 2
+        ),
+        (
+                datetime(2018, 7, 9, 9, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 17, 20, 10, tzinfo=pytz.UTC),
+                rules, 1
+        ),
+    ]
+)
+def test_simples_billings_on_call(
+        call_start, call_end, billing_rules, expected_billings):
+    call = Call(started_at=call_start, ended_at=call_end)
+    service = BillingService()
+    service._split_billings_for_call(call=call, rules=billing_rules)
+    assert len(service.billings) == expected_billings
+
+
+@pytest.mark.parametrize(
+    "rule_start, rule_end, call_start, expected_result",
+    [
+        (  # Full Call between rule start and end
+                datetime(2018, 7, 8, 23, 2, 11),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 50, 10),
+                True,
+        ),
+        (  # Call started before rule but ends between
+                datetime(2018, 7, 8, 23, 20, 12),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 20, 50, 10),
+                False,
+        ),
+        (  # Call start between rule start but ends after
+                datetime(2018, 7, 8, 23, 20, 13),
+                datetime(2018, 7, 9, 3, 21, 10),
+                datetime(2018, 7, 8, 23, 50, 10),
+                True,
+        ),
+        (  # Call start before rule and ends after rule
+                datetime(2018, 7, 8, 23, 20, 17),
+                datetime(2018, 7, 9, 3, 20, 9),
+                datetime(2018, 7, 8, 21, 50, 10),
+                False,
+        ),
+        (   # Call ends before rule start
+                datetime(2018, 7, 8, 23, 20, 15),
+                datetime(2018, 7, 9, 3, 20, 8),
+                datetime(2018, 7, 8, 20, 50, 10),
+                False,
+        ),
+        (   # Call start after rule ends
+                datetime(2018, 7, 8, 23, 20, 19),
+                datetime(2018, 7, 9, 4, 20, 10),
+                datetime(2018, 7, 10, 23, 50, 10),
+                False,
+        ),
+        (  # Call start at the same time as rule start
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 20, 10),
+                True,
+        ),
+    ]
+)
+def test_if_time_is_matching(
+        call_start, rule_start, rule_end, expected_result):
+    result = BillingService._time_is_matching(
+        call_start=call_start,
+        rule_start=rule_start,
+        rule_end=rule_end,
+    )
+    assert result == expected_result
+
+
+# class BillingModelTest(TestCase):
+@pytest.mark.parametrize(
+    "seconds, fixed, charge, ended_at, expected_amount",
+    [
+        (1800, 0, 0.10, datetime(2018, 7, 12, 3, 20, 10), 3.00),
+        (60, 10, 0.30, datetime(2018, 7, 12, 3, 20, 10), 10.30),
+        (240, 10, 0.0, datetime(2018, 7, 12, 3, 20, 10), 10.00),
+        (100, 0, 0.0, datetime(2018, 7, 12, 3, 20, 10), 0.00),
+    ]
+)
+def test_calculated_billing(seconds, fixed, charge, ended_at, expected_amount):
+    call = Call(ended_at=ended_at)
+    rule = BillingRule(by_minute_charge=charge)
+    billing = Billing(fk_call=call, fk_billing_rule=rule, seconds=seconds)
+
+    billing.calculate(fixed_charge=fixed)
+
+    assert billing.amount == expected_amount

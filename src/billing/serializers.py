@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import PhoneNumber, Call
+from .services import BillingService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class CallSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     origin = serializers.IntegerField(
         min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
-        allow_null=True, required=False, read_only=True
+        allow_null=True, required=False
     )
     destination = serializers.IntegerField(
         min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
@@ -32,7 +33,7 @@ class CallSerializer(serializers.Serializer):
     call_code = serializers.CharField(max_length=200)
 
     def create(self, validated_data):
-        logger.debug(validated_data)
+        logger.debug('Creating Validated Data', extra=validated_data)
 
         call_id = validated_data['id']
         try:
@@ -58,9 +59,19 @@ class CallSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         call_id = validated_data['id']
         call = Call.objects.get(id=call_id)
+        logger.debug('Updating Call', extra={'call': call.id})
+
         if validated_data['timestamp'] > call.started_at:
+            logger.debug('Valid Value', extra={
+                'field': 'ended_at',
+                'entity':  'Call',
+                'value': validated_data['timestamp']
+            })
+
             call.ended_at = validated_data['timestamp']
             call.save()
+            logger.debug('Call Saved')
+            BillingService().create_billings(call)
         else:
             logger.warning('Received a Invalid Value', extra={
                 'field': 'ended_at',

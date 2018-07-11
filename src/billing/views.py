@@ -13,7 +13,7 @@ from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger(__name__)
 
 

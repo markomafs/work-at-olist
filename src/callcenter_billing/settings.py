@@ -11,9 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import sys
-import psycopg2.extensions
-
+import json_log_formatter
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -136,3 +134,59 @@ TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
 TEST_OUTPUT_VERBOSE = 2
 TEST_OUTPUT_DESCRIPTIONS = 2
 TEST_OUTPUT_DIR = 'test-results/'
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'json': {
+            '()': 'callcenter_billing.settings.CustomisedJSONFormatter',
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.getenv('LOG_FILE_PATH'),
+            'formatter': 'json',
+        },
+    },
+    'loggers': {
+        'billing': {
+            'handlers': ['file', 'console'],
+            'level': os.getenv('BILLING_LOG_LEVEL', 'WARNING'),
+            'propagate': True,
+        },
+    },
+}
+
+
+class CustomisedJSONFormatter(json_log_formatter.JSONFormatter):
+
+    def mutate_json_record(self, json_record):
+        from datetime import datetime, time, timedelta
+
+        for attr_name in json_record:
+            attr = json_record[attr_name]
+            if isinstance(attr, datetime):
+                json_record[attr_name] = attr.isoformat()
+            elif isinstance(attr, time):
+                json_record[attr_name] = attr.isoformat()
+            elif isinstance(attr, timedelta):
+                json_record[attr_name] = str(attr)
+        return json_record
+
+    def json_record(self, message, extra, record):
+        extra = super().json_record(message, extra, record)
+        return extra
