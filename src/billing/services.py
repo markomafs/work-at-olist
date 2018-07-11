@@ -63,7 +63,7 @@ class BillingService:
                 logger.debug('Billing Rule Applied', extra={
                     'rule': rule.id,
                     'call': call.id,
-                    'delta_time': delta
+                    'delta_time': str(delta)
                 })
 
         if call.started_at < call.ended_at:
@@ -78,8 +78,12 @@ class BillingService:
         rule_start = datetime.combine(
             current.date(), rule.time_start).replace(tzinfo=pytz.UTC)
 
+        # should only have on rule between days
         if rule.time_end < rule.time_start:
-            rule_end += timedelta(days=1)
+            if rule_start > current:
+                rule_start -= timedelta(days=1)
+            else:
+                rule_end += timedelta(days=1)
 
         return rule_start, rule_end
 
