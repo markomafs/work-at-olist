@@ -1,5 +1,6 @@
 from django.db import models
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -138,3 +139,22 @@ class Billing(models.Model):
             ["year", "month"],
         ]
         unique_together = ('fk_call', 'fk_billing_rule',)
+
+    def calculate(self, fixed_charge=0.0):
+        billing_minutes = self.calculate_time(seconds=self.seconds)
+        charge = self.fk_billing_rule.by_minute_charge
+        cost = (charge * billing_minutes) + fixed_charge
+        self.amount = cost
+        self.setup_date(self.fk_call.ended_at)
+
+    def calculate_time(self, seconds: int) -> int:
+        billing_minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(billing_minutes, 60)
+        self.hours = hours
+        self.minutes = minutes
+        self.seconds = seconds
+        return billing_minutes
+
+    def setup_date(self, billing_date: datetime):
+        self.year = billing_date.year
+        self.month = billing_date.month

@@ -279,3 +279,23 @@ def test_if_time_is_matching(
         rule_end=rule_end,
     )
     assert result == expected_result
+
+
+# class BillingModelTest(TestCase):
+@pytest.mark.parametrize(
+    "seconds, fixed, charge, ended_at, expected_amount",
+    [
+        (1800, 0, 0.10, datetime(2018, 7, 12, 3, 20, 10), 3.00),
+        (60, 10, 0.30, datetime(2018, 7, 12, 3, 20, 10), 10.30),
+        (240, 10, 0.0, datetime(2018, 7, 12, 3, 20, 10), 10.00),
+        (100, 0, 0.0, datetime(2018, 7, 12, 3, 20, 10), 0.00),
+    ]
+)
+def test_calculated_billing(seconds, fixed, charge, ended_at, expected_amount):
+    call = Call(ended_at=ended_at)
+    rule = BillingRule(by_minute_charge=charge)
+    billing = Billing(fk_call=call, fk_billing_rule=rule, seconds=seconds)
+
+    billing.calculate(fixed_charge=fixed)
+
+    assert billing.amount == expected_amount
