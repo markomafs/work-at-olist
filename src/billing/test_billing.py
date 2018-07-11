@@ -234,64 +234,56 @@ def test_simples_billings_on_call(
 
 
 @pytest.mark.parametrize(
-    "rule_start, rule_end, call_start, call_end, expected_result",
+    "rule_start, rule_end, call_start, expected_result",
     [
         (  # Full Call between rule start and end
-                datetime(2018, 7, 8, 23, 20, 10, tzinfo=pytz.UTC),
-                datetime(2018, 7, 9, 3, 20, 10, tzinfo=pytz.UTC),
-                datetime(2018, 7, 8, 23, 50, 10, tzinfo=pytz.UTC),
-                datetime(2018, 7, 8, 23, 58, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 8, 23, 20, 10),
+                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 50, 10),
                 True,
         ),
         (  # Call started before rule but ends between
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 8, 20, 50, 10),
-                datetime(2018, 7, 8, 23, 52, 10),
                 False,
         ),
         (  # Call start between rule start but ends after
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 8, 23, 50, 10),
-                datetime(2018, 7, 9, 7, 52, 10),
                 True,
         ),
         (  # Call start before rule and ends after rule
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 8, 21, 50, 10),
-                datetime(2018, 7, 10, 23, 52, 10),
                 False,
         ),
         (   # Call ends before rule start
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 8, 20, 50, 10),
-                datetime(2018, 7, 8, 21, 52, 10),
                 False,
         ),
         (   # Call start after rule ends
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 10, 23, 50, 10),
-                datetime(2018, 7, 10, 23, 52, 10),
                 False,
         ),
         (  # Call start at the same time as rule start
                 datetime(2018, 7, 8, 23, 20, 10),
                 datetime(2018, 7, 9, 3, 20, 10),
                 datetime(2018, 7, 8, 23, 20, 10),
-                datetime(2018, 7, 9, 3, 20, 10),
                 True,
         ),
     ]
 )
 def test_if_time_is_matching(
-        call_start, call_end, rule_start, rule_end, expected_result):
+        call_start, rule_start, rule_end, expected_result):
     result = BillingService._time_is_matching(
         call_start=call_start,
-        call_end=call_end,
         rule_start=rule_start,
         rule_end=rule_end,
     )

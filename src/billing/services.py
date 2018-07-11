@@ -29,14 +29,13 @@ class BillingService:
             billing.save()
         return self.billings
 
-    def _split_billings_for_call(self, call, rules):
+    def _split_billings_for_call(self, call: Call, rules):
         for rule in rules:
             rule_start, rule_end = self._build_datetime_for_rule(
                 call.started_at, rule)
 
             if self._time_is_matching(
                     call_start=call.started_at,
-                    call_end=call.ended_at,
                     rule_start=rule_start,
                     rule_end=rule_end,
             ):
@@ -83,7 +82,7 @@ class BillingService:
         return rule_start, rule_end
 
     @staticmethod
-    def _time_is_matching(call_start, call_end, rule_start, rule_end):
+    def _time_is_matching(call_start, rule_start, rule_end):
         is_matching = False
 
         is_matching |= rule_start <= call_start <= rule_end
