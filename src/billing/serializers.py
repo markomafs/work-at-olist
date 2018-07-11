@@ -22,7 +22,7 @@ class CallSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     origin = serializers.IntegerField(
         min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
-        allow_null=True, required=False, read_only=True
+        allow_null=True, required=False
     )
     destination = serializers.IntegerField(
         min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
