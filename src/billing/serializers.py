@@ -33,7 +33,7 @@ class CallSerializer(serializers.Serializer):
     call_code = serializers.CharField(max_length=200)
 
     def create(self, validated_data):
-        logger.debug(validated_data)
+        logger.debug('Creating Validated Data', extra=validated_data)
 
         call_id = validated_data['id']
         try:
