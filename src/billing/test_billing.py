@@ -22,22 +22,7 @@ class PhoneNumberModelTests(TestCase):
 
 class BillingRuleModelTests(TestCase):
     def setUp(self):
-        BillingRule.objects.create(
-            id=1,
-            time_start=time(6, 0, 0),
-            time_end=time(22, 0, 0),
-            fixed_charge=0.36,
-            by_minute_charge=0.09,
-            is_active=True,
-        )
-        BillingRule.objects.create(
-            id=2,
-            time_start=time(22, 0, 0),
-            time_end=time(6, 0, 0),
-            fixed_charge=0.36,
-            by_minute_charge=0.0,
-            is_active=True,
-        )
+        # id 1 and 2 was created By Migrations
         BillingRule.objects.create(
             id=3,
             time_start=time(6, 0, 0),
@@ -48,7 +33,7 @@ class BillingRuleModelTests(TestCase):
         )
 
     def tearDown(self):
-        BillingRule.objects.filter(id__in=[1, 2, 3, ]).delete()
+        BillingRule.objects.get(id=3).delete()
 
     def test_active_billing_rules(self):
         """ this should test get_active_rules from BillingRule Class
@@ -103,22 +88,6 @@ def test_type_property(ended, expected_type):
 
 class CallSerializerTest(TestCase):
     call_id = 1
-
-    def setUp(self):
-        BillingRule.objects.create(
-            id=4,
-            time_start=time(0, 0, 0),
-            time_end=time(23, 59, 59),
-            fixed_charge=0.36,
-            by_minute_charge=0.09,
-            is_active=True,
-        )
-
-    def tearDown(self):
-        rule = BillingRule.objects.get(id=4)
-        for billing in rule.billing_set.all():
-            billing.delete()
-        rule.delete()
 
     def test_call_serializer(self):
         # Testing Creating
