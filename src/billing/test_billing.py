@@ -75,24 +75,6 @@ class BillingRuleModelTests(TestCase):
         )
 
 
-class BillingModelTests(TestCase):
-    def test_hours_between(self):
-        self.assertTrue(
-            Billing.is_hour_between(
-                start=time(6, 0, 0),
-                end=time(8, 0, 0),
-                check_time=time(7, 0, 0)
-            )
-        )
-
-        self.assertTrue(
-            Billing.is_hour_between(
-                start=time(22, 0, 0),
-                end=time(8, 0, 0),
-                check_time=time(2, 0, 0)
-            )
-        )
-
 # class CallModelTest(TestCase):
 default_start = datetime(2018, 6, 8)
 default_end = datetime(2018, 6, 9)

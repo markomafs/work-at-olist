@@ -138,13 +138,3 @@ class Billing(models.Model):
             ["year", "month"],
         ]
         unique_together = ('fk_call', 'fk_billing_rule',)
-
-    @staticmethod
-    def is_hour_between(start, end, check_time):
-        is_between = False
-
-        is_between |= start <= check_time <= end
-        is_between |= end < start and \
-            (start <= check_time or check_time <= end)
-
-        return is_between
