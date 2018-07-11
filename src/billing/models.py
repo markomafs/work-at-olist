@@ -43,7 +43,7 @@ class PhoneNumber(models.Model):
         if created is True:
             logger.debug('Created Phone Number', extra={
                 'area_code': area_code,
-                'phone_number': phone_number
+                'phone_number': str(phone_number),
             })
         return phone_number
 
@@ -117,7 +117,11 @@ class BillingRule(models.Model):
         active_rules = BillingRule.objects.filter(is_active=True)
 
         for rule in active_rules.values():
-            logger.debug('Fetched Billing Rule', extra=rule)
+            logger.debug('Fetched Billing Rule', extra={
+                'id': rule['id'],
+                'start': str(rule['time_start']),
+                'end': str(rule['time_end']),
+            })
 
         return active_rules
 
