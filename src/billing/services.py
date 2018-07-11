@@ -2,6 +2,7 @@ from .models import Call, Billing, BillingRule
 from datetime import datetime, time, timedelta
 import logging
 import copy
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class BillingService:
                     billing = Billing(seconds=0)
                     self.billings[rule.id] = billing
                     billing.fk_billing_rule = rule
+                    billing.fk_call = call
 
                 billing_end = min([call.ended_at, rule_end])
                 delta = billing_end - call.started_at
@@ -70,8 +72,10 @@ class BillingService:
     def _build_datetime_for_rule(
             current: datetime, rule: BillingRule) -> (datetime, datetime):
 
-        rule_end = datetime.combine(current.date(), rule.time_end)
-        rule_start = datetime.combine(current.date(), rule.time_start)
+        rule_end = datetime.combine(
+            current.date(), rule.time_end).replace(tzinfo=pytz.UTC)
+        rule_start = datetime.combine(
+            current.date(), rule.time_start).replace(tzinfo=pytz.UTC)
 
         if rule.time_end < rule.time_start:
             rule_end += timedelta(days=1)

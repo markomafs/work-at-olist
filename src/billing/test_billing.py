@@ -6,6 +6,7 @@ from datetime import time, datetime
 import pytest
 import uuid
 import random
+import pytz
 
 
 class PhoneNumberModelTests(TestCase):
@@ -103,6 +104,22 @@ def test_type_property(ended, expected_type):
 class CallSerializerTest(TestCase):
     call_id = 1
 
+    def setUp(self):
+        BillingRule.objects.create(
+            id=4,
+            time_start=time(0, 0, 0),
+            time_end=time(23, 59, 59),
+            fixed_charge=0.36,
+            by_minute_charge=0.09,
+            is_active=True,
+        )
+
+    def tearDown(self):
+        rule = BillingRule.objects.get(id=4)
+        for billing in rule.billing_set.all():
+            billing.delete()
+        rule.delete()
+
     def test_call_serializer(self):
         # Testing Creating
         create = self.create_data(self.call_id)
@@ -187,23 +204,23 @@ rules = [
     "call_start, call_end, billing_rules, expected_billings",
     [
         (
-                datetime(2018, 7, 8, 23, 20, 10),
-                datetime(2018, 7, 12, 3, 20, 10),
+                datetime(2018, 7, 8, 23, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 12, 3, 20, 10, tzinfo=pytz.UTC),
                 rules, 2
         ),
         (
-                datetime(2018, 7, 9, 9, 20, 10),
-                datetime(2018, 7, 9, 17, 20, 10),
+                datetime(2018, 7, 9, 9, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 17, 20, 10, tzinfo=pytz.UTC),
                 rules, 1
         ),
         (
-                datetime(2018, 7, 8, 10, 20, 10),
-                datetime(2018, 7, 9, 3, 20, 10),
+                datetime(2018, 7, 8, 10, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 3, 20, 10, tzinfo=pytz.UTC),
                 rules, 2
         ),
         (
-                datetime(2018, 7, 9, 9, 20, 10),
-                datetime(2018, 7, 9, 17, 20, 10),
+                datetime(2018, 7, 9, 9, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 17, 20, 10, tzinfo=pytz.UTC),
                 rules, 1
         ),
     ]
@@ -220,10 +237,10 @@ def test_simples_billings_on_call(
     "rule_start, rule_end, call_start, call_end, expected_result",
     [
         (  # Full Call between rule start and end
-                datetime(2018, 7, 8, 23, 20, 10),
-                datetime(2018, 7, 9, 3, 20, 10),
-                datetime(2018, 7, 8, 23, 50, 10),
-                datetime(2018, 7, 8, 23, 58, 10),
+                datetime(2018, 7, 8, 23, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 9, 3, 20, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 8, 23, 50, 10, tzinfo=pytz.UTC),
+                datetime(2018, 7, 8, 23, 58, 10, tzinfo=pytz.UTC),
                 True,
         ),
         (  # Call started before rule but ends between

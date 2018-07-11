@@ -1,6 +1,6 @@
 from django.db import models
-import logging
 from datetime import datetime
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class Billing(models.Model):
 
     def calculate(self, fixed_charge=0.0):
         billing_minutes = self.calculate_time(seconds=self.seconds)
-        charge = self.fk_billing_rule.by_minute_charge
+        charge = float(self.fk_billing_rule.by_minute_charge)
         cost = (charge * billing_minutes) + fixed_charge
         self.amount = cost
         self.setup_date(self.fk_call.ended_at)
