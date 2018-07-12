@@ -11,7 +11,6 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
         model = PhoneNumber
         fields = (
             'id',
-            'area_code',
             'phone_number',
             'created_at',
             'updated_at',

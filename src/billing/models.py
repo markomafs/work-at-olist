@@ -8,44 +8,25 @@ logger = logging.getLogger(__name__)
 class PhoneNumber(models.Model):
     MIN_PHONE = 1000000000
     MAX_PHONE = 99999999999
-    area_code = models.CharField(max_length=2)
-    phone_number = models.CharField(max_length=9)
+    phone_number = models.CharField(max_length=11, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.formatted()
-
-    class Meta:
-        unique_together = ('area_code', 'phone_number',)
-
-    def formatted(self):
-        formatted_number = '{area_code}{phone_number}'.format(
-            phone_number=self.phone_number,
-            area_code=self.area_code,
-        )
-        logger.debug('Phone Number Formatted', extra={
-            'output': formatted_number,
-            'area_code': self.area_code,
-            'phone_number': self.phone_number,
-        })
-        return formatted_number
+        return str(self.phone_number)
 
     @staticmethod
-    def get_instance(full_number):
-        full_number = str(full_number)
-        area_code = full_number[:2]
-        number = full_number[2:]
-        phone_number, created = PhoneNumber.objects.get_or_create(
-            area_code=area_code,
-            phone_number=number
+    def get_instance(phone_number):
+        phone_number = str(phone_number)
+        phone_model, created = PhoneNumber.objects.get_or_create(
+            phone_number=phone_number,
         )
         if created is True:
             logger.debug('Created Phone Number', extra={
-                'area_code': area_code,
-                'phone_number': str(phone_number),
+                'id': phone_model.id,
+                'phone_number': phone_number,
             })
-        return phone_number
+        return phone_model
 
 
 class Call(models.Model):
