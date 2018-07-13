@@ -47,14 +47,10 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
         """
         def get_filters(request):
             valid_date = date.today().replace(day=1) - timedelta(days=1)
-            month = int(request.GET.get('month'))
-            year = int(request.GET.get('year'))
-            if month and year:
-                if date(year=year, month=month, day=1) > valid_date:
-                    raise Http404
-            else:
-                month = valid_date.month
-                year = valid_date.year
+            month = int(request.GET.get('month', valid_date.month))
+            year = int(request.GET.get('year', valid_date.year))
+            if date(year=year, month=month, day=1) > valid_date:
+                raise Http404
             return year, month
 
         phone = self.get_object()
