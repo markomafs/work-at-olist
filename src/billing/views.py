@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call, Billing
 from django.db.models import Sum
-from datetime import date, timedelta
 
 import logging
 
@@ -35,6 +34,7 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
         calls = Call.objects.filter(fk_origin_phone_number=phone.id).all()
         return Response([
             {
+                'destination': call.fk_destination_phone_number.phone_number,
                 'start': call.started_at,
                 'end': call.ended_at
             } for call in calls
@@ -45,51 +45,20 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Return Billings for existing phone number
         """
-        def get_filters(request):
-            valid_date = date.today().replace(day=1) - timedelta(days=1)
-            month = int(request.GET.get('month', valid_date.month))
-            year = int(request.GET.get('year', valid_date.year))
-            if date(year=year, month=month, day=1) > valid_date:
-                raise Http404
-            return year, month
-
         phone = self.get_object()
-        year, month = get_filters(request)
-        billing_summary = Billing.objects.all().select_related(
-            'fk_call__fk_origin_phone_number'
-        ).values(
-            'fk_call__fk_origin_phone_number__phone_number',
-        ).filter(
-            fk_call__fk_origin_phone_number_id=phone.id,
-            year__exact=year,
-            month__exact=month,
-        ).annotate(
-            Sum('amount'),
-            Sum('hours'),
-            Sum('minutes'),
-            Sum('seconds'),
-        )
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        try:
+            year, month = Billing.get_valid_report_date(year=year, month=month)
+        except Exception:
+            raise Http404
 
-        bill_detail = Billing.objects.all().select_related(
-            'fk_call__fk_origin_phone_number'
-        ).values(
-            'fk_call__fk_origin_phone_number__phone_number',
-            'fk_call__fk_destination_phone_number__phone_number',
-            'fk_call__started_at',
-            'fk_call__ended_at',
-        ).filter(
-            fk_call__fk_origin_phone_number_id=phone.id,
-            year__exact=year,
-            month__exact=month,
-        ).annotate(
-            Sum('amount'),
-            Sum('hours'),
-            Sum('minutes'),
-            Sum('seconds'),
-        )
+        billing_summary = Billing.summarized_query_set(phone.id, year, month)
+        billing_detail = Billing.detailed_query_set(phone.id, year, month)
+
         return Response({
             'summary': billing_summary,
-            'detail': bill_detail,
+            'detail': billing_detail,
         })
 
 

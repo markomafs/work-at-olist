@@ -1,5 +1,7 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from django.db.models import Sum
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -143,3 +145,59 @@ class Billing(models.Model):
     def setup_date(self, billing_date: datetime):
         self.year = billing_date.year
         self.month = billing_date.month
+
+    @staticmethod
+    def get_valid_report_date(year, month):
+        valid_date = date.today().replace(day=1) - timedelta(days=1)
+        month = int(month)
+        year = int(year)
+        if date(year=year, month=month, day=1) > valid_date:
+            logger.exception('Invalid Report Date', extra={
+                'month': month,
+                'year': year,
+            })
+            raise Exception('Invalid Report Date')
+        return year, month
+
+    @staticmethod
+    def summarized_query_set(origin_id, year, month):
+        summarized_qs = Billing.objects.all().select_related(
+            'fk_call__fk_origin_phone_number'
+        ).values(
+            'fk_call__fk_origin_phone_number__phone_number',
+        ).annotate(
+            Sum('amount'),
+            Sum('hours'),
+            Sum('minutes'),
+            Sum('seconds'),
+        )
+        summarized = Billing._apply_report_filter(
+            qs=summarized_qs, origin_id=origin_id, year=year, month=month)
+        return summarized
+
+    @staticmethod
+    def _apply_report_filter(qs, origin_id, year, month):
+        return qs.filter(
+            fk_call__fk_origin_phone_number_id=origin_id,
+            year__exact=year,
+            month__exact=month,
+        )
+
+    @staticmethod
+    def detailed_query_set(origin_id, year, month):
+        detailed_qs = Billing.objects.all().select_related(
+            'fk_call__fk_origin_phone_number'
+        ).values(
+            'fk_call__fk_origin_phone_number__phone_number',
+            'fk_call__fk_destination_phone_number__phone_number',
+            'fk_call__started_at',
+            'fk_call__ended_at',
+        ).annotate(
+            Sum('amount'),
+            Sum('hours'),
+            Sum('minutes'),
+            Sum('seconds'),
+        )
+        detailed = Billing._apply_report_filter(
+            qs=detailed_qs, origin_id=origin_id, year=year, month=month)
+        return detailed
