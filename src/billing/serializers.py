@@ -7,6 +7,15 @@ logger = logging.getLogger(__name__)
 
 
 class PhoneNumberSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='phonenumber-detail',
+        lookup_field='phone_number',
+    )
+    billing_url = serializers.HyperlinkedIdentityField(
+        view_name='phonenumber-billings',
+        lookup_field='phone_number',
+    )
+
     class Meta:
         model = PhoneNumber
         fields = (
@@ -14,6 +23,8 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
             'phone_number',
             'created_at',
             'updated_at',
+            'url',
+            'billing_url'
         )
 
 
