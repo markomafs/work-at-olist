@@ -160,7 +160,7 @@ class Billing(models.Model):
         return year, month
 
     @staticmethod
-    def summarized_query_set(origin_id, year, month):
+    def summarized_data(origin_id, year, month):
         summarized_qs = Billing.objects.all().select_related(
             'fk_call__fk_origin_phone_number'
         ).values(
@@ -173,7 +173,22 @@ class Billing(models.Model):
         )
         summarized = Billing._apply_report_filter(
             qs=summarized_qs, origin_id=origin_id, year=year, month=month)
-        return summarized
+
+        data = {}
+        try:
+            raw = summarized.get()
+            data['amount'] = raw['amount__sum']
+            data['origin'] = raw[
+                'fk_call__fk_origin_phone_number__phone_number'
+            ]
+            data['call_time'] = Billing.format_time(
+                hours=raw['hours__sum'],
+                minutes=raw['minutes__sum'],
+                seconds=raw['seconds__sum'],
+            )
+            return data
+        except Exception:
+            return None
 
     @staticmethod
     def _apply_report_filter(qs, origin_id, year, month):
@@ -184,7 +199,7 @@ class Billing(models.Model):
         )
 
     @staticmethod
-    def detailed_query_set(origin_id, year, month):
+    def detailed_data(origin_id, year, month):
         detailed_qs = Billing.objects.all().select_related(
             'fk_call__fk_origin_phone_number'
         ).values(
@@ -200,4 +215,29 @@ class Billing(models.Model):
         )
         detailed = Billing._apply_report_filter(
             qs=detailed_qs, origin_id=origin_id, year=year, month=month)
-        return detailed
+
+        detailed_calls = []
+        for call in detailed:
+            data = {}
+            data['amount'] = call['amount__sum']
+            data['destination'] = call[
+                'fk_call__fk_destination_phone_number__phone_number'
+            ]
+            data['call_start'] = call['fk_call__started_at']
+            data['call_end'] = call['fk_call__ended_at']
+            data['call_time'] = Billing.format_time(
+                hours=call['hours__sum'],
+                minutes=call['minutes__sum'],
+                seconds=call['seconds__sum'],
+            )
+            detailed_calls.append(data)
+
+        return detailed_calls
+
+    @staticmethod
+    def format_time(hours, minutes, seconds):
+        extra_minutes, seconds = divmod(seconds, 60)
+        extra_minutes += minutes
+        extra_hours, minutes = divmod(extra_minutes, 60)
+        hours += extra_hours
+        return '{}h{}m{}s'.format(hours, minutes, seconds)

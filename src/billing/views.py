@@ -53,8 +53,12 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
         except Exception:
             raise Http404
 
-        billing_summary = Billing.summarized_query_set(phone.id, year, month)
-        billing_detail = Billing.detailed_query_set(phone.id, year, month)
+        billing_summary = Billing.summarized_data(phone.id, year, month)
+
+        if billing_summary is None:
+            return Response()
+
+        billing_detail = Billing.detailed_data(phone.id, year, month)
 
         return Response({
             'summary': billing_summary,
