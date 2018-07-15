@@ -2,7 +2,7 @@ from django.test import TestCase
 from .models import PhoneNumber, BillingRule, Billing, Call
 from .serializers import CallSerializer
 from .services import BillingService
-from datetime import time, datetime
+from datetime import time, datetime, date, timedelta
 import pytest
 import uuid
 import random
@@ -279,3 +279,33 @@ def test_calculated_billing(seconds, fixed, charge, ended_at, expected_amount):
     billing.calculate(fixed_charge=fixed)
 
     assert billing.amount == expected_amount
+
+current_date = date.today()
+last_month = current_date.replace(day=1) - timedelta(days=1)
+next_month = current_date.replace(day=1) + timedelta(days=31)
+
+
+@pytest.mark.parametrize(
+    "year, month, expected_year, expected_month",
+    [
+        (2018, 1, 2018, 1),
+        (None, None, last_month.year, last_month.month),
+        (last_month.year, last_month.month, last_month.year, last_month.month),
+    ]
+)
+def test_valid_report_date(year, month, expected_year, expected_month):
+    result_year, result_month = Billing.get_valid_report_date(year, month)
+    assert result_year == expected_year
+    assert result_month == expected_month
+
+
+@pytest.mark.parametrize(
+    "year, month",
+    [
+        (current_date.year, current_date.month),
+        (next_month.year, next_month.month),
+    ]
+)
+def test_invalid_report_date(year, month):
+    with pytest.raises(Exception):
+        Billing.get_valid_report_date(year, month)

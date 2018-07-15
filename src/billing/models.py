@@ -149,8 +149,10 @@ class Billing(models.Model):
     @staticmethod
     def get_valid_report_date(year, month):
         valid_date = date.today().replace(day=1) - timedelta(days=1)
-        month = int(month)
-        year = int(year)
+
+        month = int(month) if month is not None else valid_date.month
+        year = int(year) if year is not None else valid_date.year
+
         if date(year=year, month=month, day=1) > valid_date:
             logger.exception('Invalid Report Date', extra={
                 'month': month,
