@@ -11,8 +11,10 @@ import pytz
 
 class PhoneNumberModelTests(TestCase):
     def test_phone_number_instance(self):
-        call = PhoneNumber()
-        self.assertIsInstance(call, PhoneNumber)
+        str_number = self.create_number()
+        number = PhoneNumber(phone_number=str_number)
+        self.assertIsInstance(number, PhoneNumber)
+        self.assertEqual(str_number, number.__str__())
 
     @staticmethod
     def create_number():
