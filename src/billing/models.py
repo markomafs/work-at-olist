@@ -79,6 +79,8 @@ class Call(models.Model):
 
 
 class BillingRule(models.Model):
+    FIXED_CHARGE_CONFIG = 'fixed_charge_by_call'
+
     time_start = models.TimeField()
     time_end = models.TimeField()
     fixed_charge = models.DecimalField(max_digits=10, decimal_places=2)
@@ -107,6 +109,11 @@ class BillingRule(models.Model):
             })
 
         return active_rules
+
+    @staticmethod
+    def get_fixed_charge():
+        config = Configuration.get(BillingRule.FIXED_CHARGE_CONFIG)
+        return float(config.value)
 
 
 class Billing(models.Model):
@@ -243,3 +250,14 @@ class Billing(models.Model):
         extra_hours, minutes = divmod(extra_minutes, 60)
         hours += extra_hours
         return '{}h{}m{}s'.format(hours, minutes, seconds)
+
+
+class Configuration(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    value = models.CharField(max_length=128, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def get(name):
+        return Configuration.objects.get(name=name)

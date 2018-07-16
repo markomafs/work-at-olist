@@ -21,14 +21,15 @@ class BillingService:
         logger.debug('Creating Billing from Call', extra={'call': call.id})
 
         available_rules = BillingRule.get_active_rules()
-
+        fixed_charge = BillingRule.get_fixed_charge()
         self._split_billings_for_call(
             call=copy.copy(call),
             rules=available_rules,
         )
         for billing in self.billings.values():
-            billing.calculate()
+            billing.calculate(fixed_charge=fixed_charge)
             billing.save()
+            fixed_charge = 0  # apply fixed charge once only
         return self.billings
 
     def _split_billings_for_call(self, call: Call, rules):
