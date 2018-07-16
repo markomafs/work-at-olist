@@ -110,6 +110,11 @@ class BillingRule(models.Model):
 
         return active_rules
 
+    @staticmethod
+    def get_fixed_charge():
+        config = Configuration.get(BillingRule.FIXED_CHARGE_CONFIG)
+        return float(config.value)
+
 
 class Billing(models.Model):
     fk_call = models.ForeignKey(Call, on_delete=models.PROTECT)
