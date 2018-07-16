@@ -1,5 +1,7 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from django.db.models import Sum
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -8,44 +10,25 @@ logger = logging.getLogger(__name__)
 class PhoneNumber(models.Model):
     MIN_PHONE = 1000000000
     MAX_PHONE = 99999999999
-    area_code = models.CharField(max_length=2)
-    phone_number = models.CharField(max_length=9)
+    phone_number = models.CharField(max_length=11, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.formatted()
-
-    class Meta:
-        unique_together = ('area_code', 'phone_number',)
-
-    def formatted(self):
-        formatted_number = '{area_code}{phone_number}'.format(
-            phone_number=self.phone_number,
-            area_code=self.area_code,
-        )
-        logger.debug('Phone Number Formatted', extra={
-            'output': formatted_number,
-            'area_code': self.area_code,
-            'phone_number': self.phone_number,
-        })
-        return formatted_number
+        return str(self.phone_number)
 
     @staticmethod
-    def get_instance(full_number):
-        full_number = str(full_number)
-        area_code = full_number[:2]
-        number = full_number[2:]
-        phone_number, created = PhoneNumber.objects.get_or_create(
-            area_code=area_code,
-            phone_number=number
+    def get_instance(phone_number):
+        phone_number = str(phone_number)
+        phone_model, created = PhoneNumber.objects.get_or_create(
+            phone_number=phone_number,
         )
         if created is True:
             logger.debug('Created Phone Number', extra={
-                'area_code': area_code,
-                'phone_number': str(phone_number),
+                'id': phone_model.id,
+                'phone_number': phone_number,
             })
-        return phone_number
+        return phone_model
 
 
 class Call(models.Model):
@@ -162,3 +145,101 @@ class Billing(models.Model):
     def setup_date(self, billing_date: datetime):
         self.year = billing_date.year
         self.month = billing_date.month
+
+    @staticmethod
+    def get_valid_report_date(year, month):
+        valid_date = date.today().replace(day=1) - timedelta(days=1)
+
+        month = int(month) if month is not None else valid_date.month
+        year = int(year) if year is not None else valid_date.year
+
+        if date(year=year, month=month, day=1) > valid_date:
+            logger.exception('Invalid Report Date', extra={
+                'month': month,
+                'year': year,
+            })
+            raise Exception('Invalid Report Date')
+        return year, month
+
+    @staticmethod
+    def summarized_data(origin_id, year, month):
+        summarized_qs = Billing.objects.all().select_related(
+            'fk_call__fk_origin_phone_number'
+        ).values(
+            'fk_call__fk_origin_phone_number__phone_number',
+        ).annotate(
+            Sum('amount'),
+            Sum('hours'),
+            Sum('minutes'),
+            Sum('seconds'),
+        )
+        summarized = Billing._apply_report_filter(
+            qs=summarized_qs, origin_id=origin_id, year=year, month=month)
+
+        data = {}
+        try:
+            raw = summarized.get()
+            data['amount'] = raw['amount__sum']
+            data['origin'] = raw[
+                'fk_call__fk_origin_phone_number__phone_number'
+            ]
+            data['call_time'] = Billing.format_time(
+                hours=raw['hours__sum'],
+                minutes=raw['minutes__sum'],
+                seconds=raw['seconds__sum'],
+            )
+            return data
+        except Exception:
+            return None
+
+    @staticmethod
+    def _apply_report_filter(qs, origin_id, year, month):
+        return qs.filter(
+            fk_call__fk_origin_phone_number_id=origin_id,
+            year__exact=year,
+            month__exact=month,
+        )
+
+    @staticmethod
+    def detailed_data(origin_id, year, month):
+        detailed_qs = Billing.objects.all().select_related(
+            'fk_call__fk_origin_phone_number'
+        ).values(
+            'fk_call__fk_origin_phone_number__phone_number',
+            'fk_call__fk_destination_phone_number__phone_number',
+            'fk_call__started_at',
+            'fk_call__ended_at',
+        ).annotate(
+            Sum('amount'),
+            Sum('hours'),
+            Sum('minutes'),
+            Sum('seconds'),
+        )
+        detailed = Billing._apply_report_filter(
+            qs=detailed_qs, origin_id=origin_id, year=year, month=month)
+
+        detailed_calls = []
+        for call in detailed:
+            data = {}
+            data['amount'] = call['amount__sum']
+            data['destination'] = call[
+                'fk_call__fk_destination_phone_number__phone_number'
+            ]
+            data['call_start'] = call['fk_call__started_at']
+            data['call_end'] = call['fk_call__ended_at']
+            data['call_time'] = Billing.format_time(
+                hours=call['hours__sum'],
+                minutes=call['minutes__sum'],
+                seconds=call['seconds__sum'],
+            )
+            detailed_calls.append(data)
+
+        return detailed_calls
+
+    @staticmethod
+    def format_time(hours, minutes, seconds):
+        extra_minutes, seconds = divmod(seconds, 60)
+        extra_minutes += minutes
+        extra_hours, minutes = divmod(extra_minutes, 60)
+        hours += extra_hours
+        return '{}h{}m{}s'.format(hours, minutes, seconds)
