@@ -252,3 +252,7 @@ class Configuration(models.Model):
     value = models.CharField(max_length=128, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def get(name):
+        return Configuration.objects.get(name=name)
