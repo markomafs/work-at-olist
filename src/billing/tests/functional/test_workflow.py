@@ -74,6 +74,15 @@ def test_calculate_and_billing_one_call(
     body = json.loads(response.content)
     assert body['summary']['amount'] == billing_amount
 
+    # Testing Empty Billing
+    response = http.get(
+        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        data={'year': end.year-1, 'month': end.month},
+    )
+    assert status.is_success(response.status_code)
+    body = response.content.decode('UTF-8')
+    assert '' == body
+
 
 @pytest.mark.parametrize(
     fields,
@@ -124,3 +133,23 @@ def test_calculate_and_billing_one_call_using_post_only(
 
     body = json.loads(response.content)
     assert body['summary']['amount'] == billing_amount
+
+
+@pytest.mark.parametrize(
+    fields,
+    cases
+)
+@pytest.mark.django_db()
+def test_invalid_billing_data(
+        call_id, origin, destination, code, start, end, billing_amount):
+
+    request = build_start_request(call_id, origin, destination, code, start)
+    response = http.post(path=reverse('call-create'), data=request)
+    assert status.is_success(response.status_code)
+
+    date = datetime.today()
+    response = http.get(
+        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        data={'year': date.year, 'month': date.month},
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -25,21 +25,6 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'phone_number'
 
     @action(detail=True)
-    def calls(self, request, phone_number=None):
-        """
-        Return Calls for existing phone number
-        """
-        phone = self.get_object()
-        calls = Call.objects.filter(fk_origin_phone_number=phone.id).all()
-        return Response([
-            {
-                'destination': call.fk_destination_phone_number.phone_number,
-                'start': call.started_at,
-                'end': call.ended_at
-            } for call in calls
-        ])
-
-    @action(detail=True)
     def billings(self, request, phone_number=None):
         """
         Return Billings for existing phone number
