@@ -39,14 +39,14 @@ class Call(models.Model):
         TYPE_END
     )
 
-    fk_origin_phone_number = models.ForeignKey(PhoneNumber,
+    fk_origin_phone_number = models.ForeignKey(PhoneNumber, null=True,
                                                on_delete=models.PROTECT,
                                                related_name='origin')
-    fk_destination_phone_number = models.ForeignKey(PhoneNumber,
+    fk_destination_phone_number = models.ForeignKey(PhoneNumber, null=True,
                                                     on_delete=models.PROTECT,
                                                     related_name='destination')
     call_code = models.CharField(max_length=200)
-    started_at = models.DateTimeField('call started')
+    started_at = models.DateTimeField('call started', null=True)
     ended_at = models.DateTimeField('call ended', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -61,10 +61,7 @@ class Call(models.Model):
         """
         return self.TYPE_START if self.ended_at is None else self.TYPE_END
 
-    def _set_type(self, type_name):
-        pass
-
-    type = property(_get_type, _set_type)
+    type = property(_get_type)
 
     def _get_timestamp(self):
         """
