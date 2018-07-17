@@ -4,7 +4,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call, Billing
-from django.db.models import Sum
 
 import logging
 
@@ -67,6 +66,9 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CallDetailViewSet(generics.UpdateAPIView):
+    """
+    This endpoint Register End of a Call
+    """
     serializer_class = CallSerializer
 
     def get_queryset(self):
