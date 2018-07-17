@@ -46,24 +46,32 @@ class CallSerializer(serializers.Serializer):
         logger.debug('Creating Validated Data', extra=validated_data)
 
         call_id = validated_data['id']
-        try:
-            Call.objects.get(id=call_id)
-            logger.warning('Call Already Exists', extra={'id': call_id})
-            return validated_data
-        except Call.DoesNotExist:
-            pass
 
-        origin = PhoneNumber.get_instance(validated_data['origin'])
-        destination = PhoneNumber.get_instance(validated_data['destination'])
-        call = Call(
-            id=call_id,
-            fk_origin_phone_number=origin,
-            fk_destination_phone_number=destination,
-            started_at=validated_data['timestamp'],
-            call_code=validated_data['call_code'],
-        )
-        call.save()
-        validated_data['id'] = call.id
+        call, created = Call.objects.get_or_create(id=call_id)
+
+        if created is False and validated_data['type'] == Call.TYPE_END:
+            self.update(call, validated_data)
+
+        logger.warning('Call Already Exists', extra={'id': call_id})
+
+        if validated_data['type'] == Call.TYPE_END:
+            call.ended_at = validated_data['timestamp']
+            call.call_code = validated_data['call_code']
+            call.save()
+        else:
+            origin = PhoneNumber.get_instance(validated_data['origin'])
+            destination = PhoneNumber.get_instance(
+                validated_data['destination'])
+
+            call.fk_origin_phone_number = origin
+            call.fk_destination_phone_number = destination
+            call.started_at = validated_data['timestamp']
+            call.call_code = validated_data['call_code']
+
+            call.save()
+            if call.ended_at is not None:
+                BillingService().create_billings(call)
+
         return validated_data
 
     def update(self, instance, validated_data):

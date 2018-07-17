@@ -4,7 +4,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call, Billing
-from django.db.models import Sum
 
 import logging
 
@@ -24,21 +23,6 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PhoneNumber.objects.all()
     serializer_class = PhoneNumberSerializer
     lookup_field = 'phone_number'
-
-    @action(detail=True)
-    def calls(self, request, phone_number=None):
-        """
-        Return Calls for existing phone number
-        """
-        phone = self.get_object()
-        calls = Call.objects.filter(fk_origin_phone_number=phone.id).all()
-        return Response([
-            {
-                'destination': call.fk_destination_phone_number.phone_number,
-                'start': call.started_at,
-                'end': call.ended_at
-            } for call in calls
-        ])
 
     @action(detail=True)
     def billings(self, request, phone_number=None):
@@ -67,6 +51,9 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CallDetailViewSet(generics.UpdateAPIView):
+    """
+    This endpoint Register End of a Call
+    """
     serializer_class = CallSerializer
 
     def get_queryset(self):
