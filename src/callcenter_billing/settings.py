@@ -82,14 +82,14 @@ WSGI_APPLICATION = 'callcenter_billing.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'billing',
+        'NAME': os.getenv('DATABASE_NAME', 'billing'),
         'OPTIONS': {
             'client_encoding': 'UTF8',
         },
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',  # 8000 is default
+        'USER': os.getenv('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.getenv('DATABASE_PASS', 'root'),
+        'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
