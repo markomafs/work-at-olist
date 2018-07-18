@@ -9,7 +9,7 @@ import pytest
 http = client.Client()
 
 # Billing Calculation Data
-fields = "call_id, origin, destination, code, start, end, billing_amount"
+fields = "call_id, source, destination, code, start, end, billing_amount"
 cases = [
     (1, '11987654321', '1123456789', '1', datetime(2017, 7, 12, 3, 20, 10),
      datetime(2017, 7, 12, 3, 30, 10), 0.36),
@@ -24,10 +24,10 @@ cases = [
 ]
 
 
-def build_start_request(call_id, origin, destination, code, timestamp):
+def build_start_request(call_id, source, destination, code, timestamp):
     request = {
         'id': call_id,
-        'origin': origin,
+        'source': source,
         'destination': destination,
         'timestamp': str(timestamp),
         'type': 'start',
@@ -52,8 +52,8 @@ def build_end_request(call_id, code, timestamp):
 )
 @pytest.mark.django_db()
 def test_calculate_and_billing_one_call(
-        call_id, origin, destination, code, start, end, billing_amount):
-    request = build_start_request(call_id, origin, destination, code, start)
+        call_id, source, destination, code, start, end, billing_amount):
+    request = build_start_request(call_id, source, destination, code, start)
     response = http.post(path=reverse('call-create'), data=request)
     assert status.is_success(response.status_code)
 
@@ -66,7 +66,7 @@ def test_calculate_and_billing_one_call(
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        reverse('phonenumber-billings', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -76,7 +76,7 @@ def test_calculate_and_billing_one_call(
 
     # Testing Empty Billing
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        reverse('phonenumber-billings', kwargs={'phone_number': source}),
         data={'year': end.year-1, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -90,17 +90,17 @@ def test_calculate_and_billing_one_call(
 )
 @pytest.mark.django_db()
 def test_calculate_and_billing_one_call_with_wrong_order(
-        call_id, origin, destination, code, start, end, billing_amount):
+        call_id, source, destination, code, start, end, billing_amount):
     request = build_end_request(call_id, code, end)
     response = http.post(path=reverse('call-create'), data=request)
     assert status.is_success(response.status_code)
 
-    request = build_start_request(call_id, origin, destination, code, start)
+    request = build_start_request(call_id, source, destination, code, start)
     response = http.post(path=reverse('call-create'), data=request)
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        reverse('phonenumber-billings', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -115,9 +115,9 @@ def test_calculate_and_billing_one_call_with_wrong_order(
 )
 @pytest.mark.django_db()
 def test_calculate_and_billing_one_call_using_post_only(
-        call_id, origin, destination, code, start, end, billing_amount):
+        call_id, source, destination, code, start, end, billing_amount):
 
-    request = build_start_request(call_id, origin, destination, code, start)
+    request = build_start_request(call_id, source, destination, code, start)
     response = http.post(path=reverse('call-create'), data=request)
     assert status.is_success(response.status_code)
 
@@ -126,7 +126,7 @@ def test_calculate_and_billing_one_call_using_post_only(
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        reverse('phonenumber-billings', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -141,15 +141,15 @@ def test_calculate_and_billing_one_call_using_post_only(
 )
 @pytest.mark.django_db()
 def test_invalid_billing_data(
-        call_id, origin, destination, code, start, end, billing_amount):
+        call_id, source, destination, code, start, end, billing_amount):
 
-    request = build_start_request(call_id, origin, destination, code, start)
+    request = build_start_request(call_id, source, destination, code, start)
     response = http.post(path=reverse('call-create'), data=request)
     assert status.is_success(response.status_code)
 
     date = datetime.today()
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': origin}),
+        reverse('phonenumber-billings', kwargs={'phone_number': source}),
         data={'year': date.year, 'month': date.month},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND

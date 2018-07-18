@@ -30,7 +30,7 @@ class PhoneNumberSerializer(serializers.ModelSerializer):
 
 class CallSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
-    origin = serializers.IntegerField(
+    source = serializers.IntegerField(
         min_value=PhoneNumber.MIN_PHONE, max_value=PhoneNumber.MAX_PHONE,
         allow_null=True, required=False
     )
@@ -59,11 +59,11 @@ class CallSerializer(serializers.Serializer):
             call.call_code = validated_data['call_code']
             call.save()
         else:
-            origin = PhoneNumber.get_instance(validated_data['origin'])
+            source = PhoneNumber.get_instance(validated_data['source'])
             destination = PhoneNumber.get_instance(
                 validated_data['destination'])
 
-            call.fk_origin_phone_number = origin
+            call.fk_source_phone_number = source
             call.fk_destination_phone_number = destination
             call.started_at = validated_data['timestamp']
             call.call_code = validated_data['call_code']

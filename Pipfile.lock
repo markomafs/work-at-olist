@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c08005fc38f5f616bfdb10234b10b273cc4e2d3ff47e62a463a1d83ed31d7ec6"
+            "sha256": "1a3771584c5732472684ce9d62df8e87610b7a88a5af6101073d217b2a0ee4c5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -247,6 +247,12 @@
                 "sha256:9d81515f2b5b27051910996e1e860b1332e354d9e7bcf30c98f21dcb6713e0dd"
             ],
             "version": "==3.3.1"
+        },
+        "xmlrunner": {
+            "hashes": [
+                "sha256:5a6113d049eca7646111ee657266966e5bbfb0b5ceb2e83ee0772e16d7110f39"
+            ],
+            "version": "==1.7.7"
         }
     },
     "develop": {

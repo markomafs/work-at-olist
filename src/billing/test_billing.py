@@ -115,11 +115,11 @@ class CallSerializerTest(TestCase):
 
     @staticmethod
     def create_data(
-            call_id, origin=None, destination=None,
+            call_id, source=None, destination=None,
             call_code=None, timestamp=None
     ):
-        if origin is None:
-            origin = PhoneNumberModelTests.create_number()
+        if source is None:
+            source = PhoneNumberModelTests.create_number()
 
         if destination is None:
             destination = PhoneNumberModelTests.create_number()
@@ -134,7 +134,7 @@ class CallSerializerTest(TestCase):
         data = {
             'id': call_id,
             'call_code': call_code,
-            'origin': origin,
+            'source': source,
             'destination': destination,
             'type': Call.TYPE_START,
             'timestamp': timestamp,
