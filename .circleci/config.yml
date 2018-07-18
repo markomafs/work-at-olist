@@ -4,7 +4,7 @@ jobs:
     docker:
       # specify the version you desire here
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.4
         environment:
           BILLING_LOG_LEVEL: DEBUG
           LOG_FILE_PATH: /tmp/debug.log
@@ -27,21 +27,19 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "src/requirements.txt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - cache-{{ checksum "Pipfile.lock" }}
+            - cache-
 
       - run:
           name: install dependencies
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r src/requirements.txt
+            pipenv sync --dev
 
       - save_cache:
           paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "src/requirements.txt" }}
+            - ~/.local
+            - ~/.cache
+          key: cache-{{ checksum "Pipfile.lock" }}
 
       # run tests!
       # this example uses Django's built-in test-runner
@@ -50,9 +48,8 @@ jobs:
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
             cd src/
-            pytest --junitxml=test-results/junit/junit.xml --cov=billing/ --cov-report html:test-results/coverage/html --cov-report xml:test-results/coverage/coverage.xml
+            pipenv run pytest --junitxml=test-results/junit/junit.xml --cov=billing/ --cov-report html:test-results/coverage/html --cov-report xml:test-results/coverage/coverage.xml
 
       - store_test_results:
           path: src/test-results

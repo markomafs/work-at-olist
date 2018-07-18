@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[packages]
+django = "==2.0.6"
+djangorestframework = "==3.8.2"
+json_log_formatter = "==0.2.0"
+django-rest-swagger = "==2.2.0"
+"psycopg2-binary" = "==2.7.5"
+gunicorn = "*"
+django-heroku = "*"
+
+[requires]
+python_version = "3.6"
+
+[dev-packages]
+pylint = "*"
+pytest = "*"
+unittest-xml-reporting = "*"
+pytest-django = "*"
+pytest-cov = "*"
