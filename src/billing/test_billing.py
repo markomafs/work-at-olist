@@ -114,22 +114,12 @@ class CallSerializerTest(TestCase):
         assert call.ended_at == update_data['timestamp']
 
     @staticmethod
-    def create_data(
-            call_id, source=None, destination=None,
-            call_code=None, timestamp=None
-    ):
-        if source is None:
-            source = PhoneNumberModelTests.create_number()
-
-        if destination is None:
-            destination = PhoneNumberModelTests.create_number()
-
-        if call_code is None:
-            # see https://docs.python.org/3.6/library/uuid.html
-            call_code = str(uuid.uuid4())
-
-        if timestamp is None:
-            timestamp = datetime.now()
+    def create_data(call_id):
+        source = PhoneNumberModelTests.create_number()
+        destination = PhoneNumberModelTests.create_number()
+        # see https://docs.python.org/3.6/library/uuid.html
+        call_code = str(uuid.uuid4())
+        timestamp = datetime.now()
 
         data = {
             'id': call_id,
@@ -142,12 +132,9 @@ class CallSerializerTest(TestCase):
         return data
 
     @staticmethod
-    def update_data(call_id, call_code=None, timestamp=None):
-        if call_code is None:
-            call_code = str(uuid.uuid4())
-
-        if timestamp is None:
-            timestamp = datetime.now()
+    def update_data(call_id):
+        call_code = str(uuid.uuid4())
+        timestamp = datetime.now()
 
         data = {
             'id': call_id,
