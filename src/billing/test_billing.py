@@ -9,17 +9,33 @@ import random
 import pytz
 
 
-class PhoneNumberModelTests(TestCase):
-    def test_phone_number_instance(self):
-        str_number = self.create_number()
-        number = PhoneNumber(phone_number=str_number)
-        self.assertIsInstance(number, PhoneNumber)
-        self.assertEqual(str_number, number.__str__())
-
+class PhoneNumberFaker:
     @staticmethod
-    def create_number():
+    def fake_number():
         phone = random.randint(PhoneNumber.MIN_PHONE, PhoneNumber.MAX_PHONE)
         return str(phone)
+
+
+@pytest.mark.django_db()
+def test_phone_number_get_instance():
+    str_number = PhoneNumberFaker.fake_number()
+    number = PhoneNumber.get_instance(str_number)
+
+    assert isinstance(number, PhoneNumber)
+    assert str_number == number.__str__()
+
+
+@pytest.mark.django_db()
+def test_phone_number_get_instance_twice():
+    str_number = PhoneNumberFaker.fake_number()
+    number = PhoneNumber.get_instance(str_number)
+
+    assert isinstance(number, PhoneNumber)
+    assert str_number == number.__str__()
+
+    number2 = PhoneNumber.get_instance(str_number)
+
+    assert number == number2
 
 
 class BillingRuleModelTests(TestCase):
@@ -137,8 +153,8 @@ class CallSerializerTest(TestCase):
 
     @staticmethod
     def create_data(call_id):
-        source = PhoneNumberModelTests.create_number()
-        destination = PhoneNumberModelTests.create_number()
+        source = PhoneNumberFaker.fake_number()
+        destination = PhoneNumberFaker.fake_number()
         # see https://docs.python.org/3.6/library/uuid.html
         call_code = str(uuid.uuid4())
         timestamp = datetime.now()
