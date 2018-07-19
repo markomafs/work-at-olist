@@ -51,9 +51,6 @@ class Call(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.call_code
-
     # Creating On The Fly Attributes (to adapt to call request payload)
     def _get_type(self):
         """
@@ -69,10 +66,7 @@ class Call(models.Model):
         """
         return self.started_at if self.ended_at is None else self.ended_at
 
-    def _set_timestamp(self, timestamp):
-        self.created_at = timestamp
-
-    timestamp = property(_get_timestamp, _set_timestamp)
+    timestamp = property(_get_timestamp)
 
 
 class BillingRule(models.Model):
