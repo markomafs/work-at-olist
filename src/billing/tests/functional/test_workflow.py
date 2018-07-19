@@ -153,3 +153,8 @@ def test_invalid_billing_data(
         data={'year': date.year, 'month': date.month},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_home():
+    response = http.get(path='/')
+    assert status.is_success(response.status_code)
