@@ -124,7 +124,10 @@ class CallSerializerTest(TestCase):
         # Testing Update
         call = Call.objects.get(id=self.call_id)
         update = CallSerializer(
-            data=self.update_data(self.call_id, started + timedelta(minutes=9))
+            data=self.update_data(
+                call_id=self.call_id,
+                timestamp=(started - timedelta(days=1))
+            )
         )
         assert update.is_valid()
         update_data = dict(
