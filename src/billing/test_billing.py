@@ -113,28 +113,37 @@ class CallSerializerTest(TestCase):
             tzinfo=call.started_at.tzinfo)
         assert call.ended_at == update_data['timestamp']
 
+    def test_invalid_timestamp(self):
+        # Testing Creating
+        create = self.create_data(self.call_id)
+        started = create["timestamp"]
+        serializer = CallSerializer(data=create)
+        assert serializer.is_valid()
+        serializer.create(serializer.data)
+
+        # Testing Update
+        call = Call.objects.get(id=self.call_id)
+        update = CallSerializer(
+            data=self.update_data(self.call_id, started + timedelta(minutes=9))
+        )
+        assert update.is_valid()
+        update_data = dict(
+            list(update.validated_data.items())
+        )
+        serializer.update(call, update_data)
+
     @staticmethod
-    def create_data(
-            call_id, origin=None, destination=None,
-            call_code=None, timestamp=None
-    ):
-        if origin is None:
-            origin = PhoneNumberModelTests.create_number()
-
-        if destination is None:
-            destination = PhoneNumberModelTests.create_number()
-
-        if call_code is None:
-            # see https://docs.python.org/3.6/library/uuid.html
-            call_code = str(uuid.uuid4())
-
-        if timestamp is None:
-            timestamp = datetime.now()
+    def create_data(call_id):
+        source = PhoneNumberModelTests.create_number()
+        destination = PhoneNumberModelTests.create_number()
+        # see https://docs.python.org/3.6/library/uuid.html
+        call_code = str(uuid.uuid4())
+        timestamp = datetime.now()
 
         data = {
             'id': call_id,
             'call_code': call_code,
-            'origin': origin,
+            'source': source,
             'destination': destination,
             'type': Call.TYPE_START,
             'timestamp': timestamp,
@@ -142,10 +151,8 @@ class CallSerializerTest(TestCase):
         return data
 
     @staticmethod
-    def update_data(call_id, call_code=None, timestamp=None):
-        if call_code is None:
-            call_code = str(uuid.uuid4())
-
+    def update_data(call_id, timestamp=None):
+        call_code = str(uuid.uuid4())
         if timestamp is None:
             timestamp = datetime.now()
 

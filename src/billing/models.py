@@ -39,9 +39,9 @@ class Call(models.Model):
         TYPE_END
     )
 
-    fk_origin_phone_number = models.ForeignKey(PhoneNumber, null=True,
+    fk_source_phone_number = models.ForeignKey(PhoneNumber, null=True,
                                                on_delete=models.PROTECT,
-                                               related_name='origin')
+                                               related_name='source')
     fk_destination_phone_number = models.ForeignKey(PhoneNumber, null=True,
                                                     on_delete=models.PROTECT,
                                                     related_name='destination')
@@ -50,9 +50,6 @@ class Call(models.Model):
     ended_at = models.DateTimeField('call ended', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.call_code
 
     # Creating On The Fly Attributes (to adapt to call request payload)
     def _get_type(self):
@@ -69,10 +66,7 @@ class Call(models.Model):
         """
         return self.started_at if self.ended_at is None else self.ended_at
 
-    def _set_timestamp(self, timestamp):
-        self.created_at = timestamp
-
-    timestamp = property(_get_timestamp, _set_timestamp)
+    timestamp = property(_get_timestamp)
 
 
 class BillingRule(models.Model):
@@ -166,11 +160,11 @@ class Billing(models.Model):
         return year, month
 
     @staticmethod
-    def summarized_data(origin_id, year, month):
+    def summarized_data(source_id, year, month):
         summarized_qs = Billing.objects.all().select_related(
-            'fk_call__fk_origin_phone_number'
+            'fk_call__fk_source_phone_number'
         ).values(
-            'fk_call__fk_origin_phone_number__phone_number',
+            'fk_call__fk_source_phone_number__phone_number',
         ).annotate(
             Sum('amount'),
             Sum('hours'),
@@ -178,14 +172,14 @@ class Billing(models.Model):
             Sum('seconds'),
         )
         summarized = Billing._apply_report_filter(
-            qs=summarized_qs, origin_id=origin_id, year=year, month=month)
+            qs=summarized_qs, source_id=source_id, year=year, month=month)
 
         data = {}
         try:
             raw = summarized.get()
             data['amount'] = raw['amount__sum']
-            data['origin'] = raw[
-                'fk_call__fk_origin_phone_number__phone_number'
+            data['source'] = raw[
+                'fk_call__fk_source_phone_number__phone_number'
             ]
             data['call_time'] = Billing.format_time(
                 hours=raw['hours__sum'],
@@ -197,19 +191,19 @@ class Billing(models.Model):
             return None
 
     @staticmethod
-    def _apply_report_filter(qs, origin_id, year, month):
+    def _apply_report_filter(qs, source_id, year, month):
         return qs.filter(
-            fk_call__fk_origin_phone_number_id=origin_id,
+            fk_call__fk_source_phone_number_id=source_id,
             year__exact=year,
             month__exact=month,
         )
 
     @staticmethod
-    def detailed_data(origin_id, year, month):
+    def detailed_data(source_id, year, month):
         detailed_qs = Billing.objects.all().select_related(
-            'fk_call__fk_origin_phone_number'
+            'fk_call__fk_source_phone_number'
         ).values(
-            'fk_call__fk_origin_phone_number__phone_number',
+            'fk_call__fk_source_phone_number__phone_number',
             'fk_call__fk_destination_phone_number__phone_number',
             'fk_call__started_at',
             'fk_call__ended_at',
@@ -220,7 +214,7 @@ class Billing(models.Model):
             Sum('seconds'),
         )
         detailed = Billing._apply_report_filter(
-            qs=detailed_qs, origin_id=origin_id, year=year, month=month)
+            qs=detailed_qs, source_id=source_id, year=year, month=month)
 
         detailed_calls = []
         for call in detailed:

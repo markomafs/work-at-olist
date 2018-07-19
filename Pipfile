@@ -10,6 +10,7 @@ django-rest-swagger = "==2.2.0"
 "psycopg2-binary" = "==2.7.5"
 gunicorn = "*"
 django-heroku = "*"
+xmlrunner = "*"
 
 [requires]
 python_version = "3.6"

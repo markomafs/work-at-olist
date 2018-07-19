@@ -1,7 +1,11 @@
 from django.http import Http404
+from django.contrib.sites.shortcuts import get_current_site
+
 from rest_framework import viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .serializers import PhoneNumberSerializer, CallSerializer
 from .models import PhoneNumber, Call, Billing
 
@@ -65,3 +69,18 @@ class CallViewSet(generics.CreateAPIView):
     This endpoint Register Calls to be billed 
     """
     serializer_class = CallSerializer
+
+
+class WelcomeView(APIView):
+    """
+    This endpoint is the Welcome Home to address Swagger Docs URI
+    """
+    def get(self, request):
+        site = get_current_site(request)
+        return Response({
+            'name': 'Callcenter Billing',
+            'author': 'Marco Souza',
+            'description': 'Microservice to Handle Billing of Registered Calls',
+            'api-doc': site.domain + '/swagger/',
+            'repository': 'https://github.com/markomafs/work-at-olist/'
+        })
