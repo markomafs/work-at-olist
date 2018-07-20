@@ -16,6 +16,22 @@ class PhoneNumberFaker:
         return str(phone)
 
 
+class BillingRuleFaker:
+    @staticmethod
+    def fake_rule(
+        rule_id, time_start=None, time_end=None, fixed_charge=0,
+        by_minute_charge=0, is_active=True
+    ):
+        return BillingRule(
+            id=rule_id,
+            time_start=time_start,
+            time_end=time_end,
+            fixed_charge=fixed_charge,
+            by_minute_charge=by_minute_charge,
+            is_active=is_active,
+        )
+
+
 @pytest.mark.django_db()
 def test_phone_number_get_instance():
     str_number = PhoneNumberFaker.fake_number()
@@ -38,48 +54,16 @@ def test_phone_number_get_instance_twice():
     assert number == number2
 
 
-class BillingRuleModelTests(TestCase):
-    def setUp(self):
-        # id 1 and 2 was created By Migrations
-        BillingRule.objects.create(
-            id=3,
-            time_start=time(6, 0, 0),
-            time_end=time(8, 0, 0),
-            fixed_charge=0.1,
-            by_minute_charge=0.0,
-            is_active=False,
-        )
+@pytest.mark.django_db()
+def test_billing_rule_get_active_rules():
+    rule = BillingRuleFaker.fake_rule(
+        3, time(6, 0, 0), time(8, 0, 0), is_active=False)
+    rule.save()
+    available_rules = BillingRule.get_active_rules()
 
-    def tearDown(self):
-        BillingRule.objects.get(id=3).delete()
-
-    def test_active_billing_rules(self):
-        """ this should test get_active_rules from BillingRule Class
-            expected 2 rules based on Setup function
-        """
-        available_rules = BillingRule.get_active_rules()
-
-        self.assertEqual(
-            len(available_rules), 2,
-            msg='Should Retrieve 2 rules'
-        )
-
-    @staticmethod
-    def create_rule(
-            rule_id, time_start=None, time_end=None, fixed_charge=0,
-            by_minute_charge=0, is_active=True
-    ):
-        return BillingRule(
-            id=rule_id,
-            time_start=time_start,
-            time_end=time_end,
-            fixed_charge=fixed_charge,
-            by_minute_charge=by_minute_charge,
-            is_active=is_active,
-        )
+    assert len(available_rules) == 2, "Should Retrieve 2 rules"
 
 
-# class CallModelTest(TestCase):
 default_start = datetime(2018, 6, 8)
 default_end = datetime(2018, 6, 9)
 
@@ -187,16 +171,15 @@ class CallSerializerTest(TestCase):
 rule_one = 1
 rule_two = 2
 rules = [
-    BillingRuleModelTests.create_rule(
+    BillingRuleFaker.fake_rule(
         rule_id=rule_one, time_start=time(22, 0, 1), time_end=time(8, 0, 0)
     ),
-    BillingRuleModelTests.create_rule(
+    BillingRuleFaker.fake_rule(
         rule_id=rule_two, time_start=time(8, 0, 1), time_end=time(22, 0, 0)
     ),
 ]
 
 
-# class BillingServiceTest(TestCase):
 @pytest.mark.parametrize(
     "call_start, call_end, billing_rules, expected_billings",
     [
@@ -287,7 +270,6 @@ def test_if_time_is_matching(
     assert result == expected_result
 
 
-# class BillingModelTest(TestCase):
 @pytest.mark.parametrize(
     "seconds, fixed, charge, ended_at, expected_amount",
     [
