@@ -1,4 +1,3 @@
-from django.test import TestCase
 from .models import PhoneNumber, BillingRule, Billing, Call
 from .serializers import CallSerializer
 from .services import BillingService
