@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import django_heroku
+import locale
+
+# Setup Locale to hangle currency
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

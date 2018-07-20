@@ -1,3 +1,5 @@
+import locale
+
 from django.db import models
 from datetime import datetime, date, timedelta
 from django.db.models import Sum
@@ -177,7 +179,8 @@ class Billing(models.Model):
         data = {}
         try:
             raw = summarized.get()
-            data['amount'] = raw['amount__sum']
+            amount = Billing.format_amount(raw['amount__sum'])
+            data['amount'] = amount
             data['source'] = raw[
                 'fk_call__fk_source_phone_number__phone_number'
             ]
@@ -219,7 +222,8 @@ class Billing(models.Model):
         detailed_calls = []
         for call in detailed:
             data = {}
-            data['amount'] = call['amount__sum']
+            amount = Billing.format_amount(call['amount__sum'])
+            data['amount'] = amount
             data['destination'] = call[
                 'fk_call__fk_destination_phone_number__phone_number'
             ]
@@ -241,6 +245,16 @@ class Billing(models.Model):
         extra_hours, minutes = divmod(extra_minutes, 60)
         hours += extra_hours
         return '{}h{}m{}s'.format(hours, minutes, seconds)
+
+    @staticmethod
+    def format_amount(amount):
+        numbers = locale.currency(
+            amount,
+            grouping=True,
+            symbol=False
+        )
+        formatted = "R$ {amount}".format(amount=numbers)
+        return formatted
 
 
 class Configuration(models.Model):
