@@ -75,21 +75,19 @@ class CallSerializer(serializers.Serializer):
         return validated_data
 
     def update(self, instance, validated_data):
-        call_id = validated_data['id']
-        call = Call.objects.get(id=call_id)
-        logger.debug('Updating Call', extra={'call': call.id})
+        logger.debug('Updating Call', extra={'call': instance.id})
 
-        if validated_data['timestamp'] > call.started_at:
+        if validated_data['timestamp'] > instance.started_at:
             logger.debug('Valid Value', extra={
                 'field': 'ended_at',
                 'entity':  'Call',
                 'value': validated_data['timestamp']
             })
 
-            call.ended_at = validated_data['timestamp']
-            call.save()
+            instance.ended_at = validated_data['timestamp']
+            instance.save()
             logger.debug('Call Saved')
-            BillingService().create_billings(call)
+            BillingService().create_billings(instance)
         else:
             logger.warning('Received a Invalid Value', extra={
                 'field': 'ended_at',

@@ -32,6 +32,40 @@ class BillingRuleFaker:
         )
 
 
+class CallFaker:
+    @staticmethod
+    def fake_start_call(call_id):
+        source = PhoneNumberFaker.fake_number()
+        destination = PhoneNumberFaker.fake_number()
+        # see https://docs.python.org/3.6/library/uuid.html
+        call_code = str(uuid.uuid4())
+        timestamp = datetime.now()
+
+        data = {
+            'id': call_id,
+            'call_code': call_code,
+            'source': source,
+            'destination': destination,
+            'type': Call.TYPE_START,
+            'timestamp': timestamp,
+        }
+        return data
+
+    @staticmethod
+    def fake_end_call(call_id, timestamp=None):
+        call_code = str(uuid.uuid4())
+        if timestamp is None:
+            timestamp = datetime.now()
+
+        data = {
+            'id': call_id,
+            'call_code': call_code,
+            'type': Call.TYPE_END,
+            'timestamp': timestamp,
+        }
+        return data
+
+
 @pytest.mark.django_db()
 def test_phone_number_get_instance():
     str_number = PhoneNumberFaker.fake_number()
@@ -88,84 +122,59 @@ def test_type_property(ended, expected_type):
     assert call.type == expected_type
 
 
-class CallSerializerTest(TestCase):
+@pytest.mark.django_db()
+def test_call_serializer_create():
     call_id = 1
+    create = CallFaker.fake_start_call(call_id)
+    serializer = CallSerializer(data=create)
+    assert serializer.is_valid()
+    serializer.create(serializer.data)
+    call = Call.objects.get(id=call_id)
+    assert call.started_at is not None
 
-    def test_call_serializer(self):
-        # Testing Creating
-        create = self.create_data(self.call_id)
-        serializer = CallSerializer(data=create)
-        assert serializer.is_valid()
-        serializer.create(serializer.data)
 
-        # Testing Update
-        call = Call.objects.get(id=self.call_id)
-        update = CallSerializer(data=self.update_data(self.call_id))
-        assert update.is_valid()
-        update_data = dict(
-            list(update.validated_data.items())
-        )
-        serializer.update(call, update_data)
+@pytest.mark.django_db()
+def test_call_serializer_update():
+    call_id = 2
 
-        # Validating Success
-        call = Call.objects.get(id=self.call_id)
-        assert call.started_at == create['timestamp'].replace(
-            tzinfo=call.started_at.tzinfo)
-        assert call.ended_at == update_data['timestamp']
+    create = CallFaker.fake_start_call(call_id)
+    serializer = CallSerializer(data=create)
+    serializer.is_valid()
+    serializer.create(serializer.data)
+    call = Call.objects.get(id=call_id)
 
-    def test_invalid_timestamp(self):
-        # Testing Creating
-        create = self.create_data(self.call_id)
-        started = create["timestamp"]
-        serializer = CallSerializer(data=create)
-        assert serializer.is_valid()
-        serializer.create(serializer.data)
+    update = CallFaker.fake_end_call(call_id)
+    serializer = CallSerializer(data=update)
+    assert serializer.is_valid()
+    update_data = dict(
+        list(serializer.validated_data.items())
+    )
+    updated_call = serializer.update(call, update_data)
 
-        # Testing Update
-        call = Call.objects.get(id=self.call_id)
-        update = CallSerializer(
-            data=self.update_data(
-                call_id=self.call_id,
-                timestamp=(started - timedelta(days=1))
-            )
-        )
-        assert update.is_valid()
-        update_data = dict(
-            list(update.validated_data.items())
-        )
-        serializer.update(call, update_data)
+    assert call.started_at != updated_call.ended_at
 
-    @staticmethod
-    def create_data(call_id):
-        source = PhoneNumberFaker.fake_number()
-        destination = PhoneNumberFaker.fake_number()
-        # see https://docs.python.org/3.6/library/uuid.html
-        call_code = str(uuid.uuid4())
-        timestamp = datetime.now()
 
-        data = {
-            'id': call_id,
-            'call_code': call_code,
-            'source': source,
-            'destination': destination,
-            'type': Call.TYPE_START,
-            'timestamp': timestamp,
-        }
-        return data
+@pytest.mark.django_db()
+def test_invalid_timestamp():
+    call_id = 3
+    create = CallFaker.fake_start_call(call_id)
+    started = create["timestamp"]
+    serializer = CallSerializer(data=create)
+    assert serializer.is_valid()
+    serializer.create(serializer.data)
 
-    @staticmethod
-    def update_data(call_id, timestamp=None):
-        call_code = str(uuid.uuid4())
-        if timestamp is None:
-            timestamp = datetime.now()
-
-        data = {
-            'id': call_id,
-            'call_code': call_code,
-            'type': Call.TYPE_END,
-            'timestamp': timestamp,
-        }
-        return data
+    # Testing Update
+    call = Call.objects.get(id=call_id)
+    update = CallFaker.fake_end_call(
+        call_id=call_id,
+        timestamp=(started - timedelta(days=1))
+    )
+    serializer = CallSerializer(data=update)
+    assert serializer.is_valid()
+    update_data = dict(
+        list(serializer.validated_data.items())
+    )
+    serializer.update(call, update_data)
 
 
 rule_one = 1
