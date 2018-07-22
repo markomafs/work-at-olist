@@ -75,6 +75,8 @@ class WelcomeView(APIView):
     """
     This endpoint is the Welcome Home to address Swagger Docs URI
     """
+    swagger_schema = None
+
     def get(self, request):
         site = get_current_site(request)
         return Response({
