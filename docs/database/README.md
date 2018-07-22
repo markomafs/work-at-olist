@@ -14,10 +14,8 @@ All Tables/Models must have:
 * Responsible for all phone numbers
   * Destination phone numbers
   * Origin phone numbers
-* `area_code` is the Brazilian Region identifier
-* `phone_number` is the number itself with 8 or 9 digits
-* `area_code` was separated from `phone_number` for reports or aggregation
-* Unique KEY between (`area_code` and `phone_number`) to avoid duplication
+* `phone_number` is the number itself with 10 or 11 digits
+* Unique KEY at `phone_number` to avoid duplication
 
 #### Call
 
@@ -39,7 +37,7 @@ All Tables/Models must have:
     * It can cause unexpected billing calculation
 * `time_start` represents start time that this rule will start to apply
 * `time_end` represents start time that this rule will stop to apply
-* `fixed_charge` is the fixed charge that will apply for that period
+* `fixed_charge` ~~is the fixed charge that will apply for that period~~ not applicable
 * `by_minute_charge` is the charge that will apply based on minutes on call
 * `is_active` flag that represents if that rule is available or not
 
@@ -53,3 +51,11 @@ All Tables/Models must have:
 * `hours` is the summarized hours for this billing
 * `minutes` is the summarized minutes for this billing
 * `seconds` is the summarized seconds for this billing
+* `year` is the accounting billing year
+* `month` is the accounting billing year
+
+#### Configuration
+
+* Responsible for all key value Configurations of Billing Service
+* `name` is the name of each configuration
+* `value` is the value of each configuration
