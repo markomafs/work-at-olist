@@ -21,6 +21,9 @@ cd work-at-olist
 docker-compose up -d
 ```
 
+Wait for `pipenv sync` before use `localhost:8000`
+
+
 ## [Deployment](#deployment) 
 
 All deployment process is automated by Heroku whenever master changes,

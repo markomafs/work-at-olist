@@ -11,7 +11,7 @@ services:
     volumes:
       - .:/www/
     ports:
-      - "8080:8000"
+      - "8000:8000"
     depends_on:
       - db
     environment:
@@ -27,7 +27,7 @@ services:
     - sh
     - -c
     - |
-      sleep 4
+      pipenv sync
       pipenv run python src/manage.py migrate
       pipenv run python src/manage.py runserver 0.0.0.0:8000
 
