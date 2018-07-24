@@ -7,7 +7,7 @@ from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled, \
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics, status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, NotFound
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -67,13 +67,13 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
 
     @swagger_auto_schema(
         method='get',
-        operation_description="Billings for existing phone number",
+        operation_description="Billing for existing phone number",
         responses={200: success_response, 404: '{"detail": "Message"}'},
         field_inspectors=[],
         manual_parameters=[filter_month, filter_year],
     )
     @action(detail=True)
-    def billings(self, request, phone_number=None):
+    def billing(self, request, phone_number=None):
         phone = self.get_object()
         month = request.GET.get('month')
         year = request.GET.get('year')
@@ -87,8 +87,7 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
                 'phone': phone_number,
             })
 
-            raise APIException(
-                "Invalid Filter", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound("Invalid Filter", code=status.HTTP_404_NOT_FOUND)
 
         billing_summary = Billing.summarized_data(phone.id, year, month)
 
@@ -98,8 +97,7 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
                 'year': year,
                 'phone': phone_number,
             })
-            raise APIException(
-                "Billing Not Found", code=status.HTTP_404_NOT_FOUND)
+            raise NotFound("Billing Not Found", code=status.HTTP_404_NOT_FOUND)
 
         billing_detail = Billing.detailed_data(phone.id, year, month)
 

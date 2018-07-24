@@ -66,7 +66,7 @@ def test_calculate_and_billing_one_call(
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': source}),
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -76,12 +76,12 @@ def test_calculate_and_billing_one_call(
 
     # Testing Empty Billing
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': source}),
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
         data={'year': end.year-1, 'month': end.month},
     )
-    assert status.is_success(response.status_code)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     body = response.content.decode('UTF-8')
-    assert '' == body
+    assert '{"detail":"Billing Not Found"}' == body
 
 
 @pytest.mark.parametrize(
@@ -100,7 +100,7 @@ def test_calculate_and_billing_one_call_with_wrong_order(
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': source}),
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -126,7 +126,7 @@ def test_calculate_and_billing_one_call_using_post_only(
     assert status.is_success(response.status_code)
 
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': source}),
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
         data={'year': end.year, 'month': end.month},
     )
     assert status.is_success(response.status_code)
@@ -149,7 +149,7 @@ def test_invalid_billing_data(
 
     date = datetime.today()
     response = http.get(
-        reverse('phonenumber-billings', kwargs={'phone_number': source}),
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
         data={'year': date.year, 'month': date.month},
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND
