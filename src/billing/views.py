@@ -1,19 +1,14 @@
-from django.http import Http404
 from django.contrib.sites.shortcuts import get_current_site
 from drf_yasg import openapi
-from drf_yasg.app_settings import swagger_settings
-from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled, \
-    SwaggerAutoSchema, FieldInspector
 from drf_yasg.utils import swagger_auto_schema
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics, status
-from rest_framework.exceptions import APIException, NotFound
-from rest_framework.decorators import action, api_view
+from rest_framework.exceptions import NotFound
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import PhoneNumberSerializer, CallSerializer
-from .models import PhoneNumber, Call, Billing
+from .models import PhoneNumber, Billing
 
 import logging
 
