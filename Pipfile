@@ -13,6 +13,7 @@ xmlrunner = "*"
 drf-yasg = {version = "*"}
 flex = "*"
 swagger-spec-validator = "*"
+django-filter = "*"
 
 [requires]
 python_version = "3.6"
