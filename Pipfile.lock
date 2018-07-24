@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "94afc81aa16f1bfa7b9c063d4da1c563746efef198c94fe69c82c7b765732079"
+            "sha256": "e78de7993a9d82dcf5e3afc4545ba937a1e3da2d94565e3de664a855a04e9d34"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -70,12 +70,6 @@
                 "sha256:86c3925020c27d072cdae7b828aaa5d165c2032a629abbe3c3a1be1edae61c58"
             ],
             "version": "==2.0.0"
-        },
-        "django-filters": {
-            "hashes": [
-                "sha256:1a9799a41106dc53ed894e952a24e8dee9b4fb37f010f22d178c09c90c61d711"
-            ],
-            "version": "==0.2.1"
         },
         "django-heroku": {
             "hashes": [
@@ -501,10 +495,10 @@
         },
         "pylint": {
             "hashes": [
-                "sha256:248a7b19138b22e6390cba71adc0cb03ac6dd75a25d3544f03ea1728fa20e8f4",
-                "sha256:9cd70527ef3b099543eeabeb5c80ff325d86b477aa2b3d49e264e12d12153bc8"
+                "sha256:2c90a24bee8fae22ac98061c896e61f45c5b73c2e0511a4bf53f99ba56e90434",
+                "sha256:454532779425098969b8f54ab0f056000b883909f69d05905ea114df886e3251"
             ],
-            "version": "==2.0.0"
+            "version": "==2.0.1"
         },
         "pytest": {
             "hashes": [
