@@ -1,0 +1,200 @@
+{
+	"info": {
+		"_postman_id": "2f795c0c-8a36-1bcf-957f-0adcbeb5c91a",
+		"name": "Work-At-Olist",
+		"description": "Set o Request to handle and Test Billing Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Call",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"source\": 11972577063,\n  \"destination\": 11297654321,\n  \"type\": \"start\",\n  \"timestamp\": \"2018-06-02T07:19:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/call",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"call"
+					]
+				},
+				"description": "First Request to Register a Call"
+			},
+			"response": []
+		},
+		{
+			"name": "End Call",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"source\": 11972577063,\n  \"destination\": 11297654321,\n  \"type\": \"end\",\n  \"timestamp\": \"2018-06-02T09:19:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/call",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"call"
+					]
+				},
+				"description": "End Request to Register a Call"
+			},
+			"response": []
+		},
+		{
+			"name": "List Phone Numbers",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"origin\": 11987654321,\n  \"destination\": 11287654321,\n  \"type\": \"end\",\n  \"timestamp\": \"2018-06-19T10:18:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/phone/",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"phone",
+						""
+					]
+				},
+				"description": "End Request to Register a Call"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Phone Number Detail",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"origin\": 11987654321,\n  \"destination\": 11287654321,\n  \"type\": \"end\",\n  \"timestamp\": \"2018-06-19T10:18:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/phone/11972577063/",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"phone",
+						"11972577063",
+						""
+					]
+				},
+				"description": "Retrieve Phone Number"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Phone Last Billing",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"origin\": 11987654321,\n  \"destination\": 11287654321,\n  \"type\": \"end\",\n  \"timestamp\": \"2018-06-19T10:18:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/phone/11972577063/billing/",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"phone",
+						"11972577063",
+						"billing",
+						""
+					]
+				},
+				"description": "Retrieve Last Billing for received Phone Number"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Phone Billing Filtered",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 99,\n  \"origin\": 11987654321,\n  \"destination\": 11287654321,\n  \"type\": \"end\",\n  \"timestamp\": \"2018-06-19T10:18:38.558894Z\",\n  \"call_code\": \"random_1\"\n}"
+				},
+				"url": {
+					"raw": "{{wao.base.url}}/phone/11972577063/billing/?month=6&year=2017",
+					"host": [
+						"{{wao.base.url}}"
+					],
+					"path": [
+						"phone",
+						"11972577063",
+						"billing",
+						""
+					],
+					"query": [
+						{
+							"key": "month",
+							"value": "6"
+						},
+						{
+							"key": "year",
+							"value": "2017"
+						}
+					]
+				},
+				"description": "Retrieve Last Billing for received Phone Number"
+			},
+			"response": []
+		}
+	]
+}
