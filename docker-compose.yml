@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+    image: postgres
+    environment:
+    - POSTGRES_DB=billing
+
+  web:
+    build: .
+    volumes:
+      - .:/www/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+    - DATABASE_HOST=db
+    - DATABASE_NAME=billing
+    - DATABASE_USER=postgres
+    - DATABASE_PASS=root
+    - DATABASE_PORT=5432
+    - LOG_FILE_PATH=/tmp/debug.log
+    - DEBUG=True
+    - BILLING_LOG_LEVEL=DEBUG
+    entrypoint:
+    - sh
+    - -c
+    - |
+      pipenv sync
+      pipenv run python src/manage.py migrate
+      pipenv run python src/manage.py runserver 0.0.0.0:8000
+

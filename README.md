@@ -19,11 +19,11 @@ docker-compose
 
 ### Installing
 
-TBD
+See [Installing](docs/environment/README.md#setup-env) Instructions
 
 ## Deployment
 
-TBD
+See [Deployment](docs/environment/README.md#deployment) Instructions
 
 ## Technical Documentation
 
@@ -34,6 +34,7 @@ For further technical information, check [docs](docs/README.md)
 * [Django](https://docs.djangoproject.com/en/2.0/) - The web framework used
 * [pip](https://pip.pypa.io/en/stable/) - Dependency Management
 * [Heroku](https://www.heroku.com/) - PAAS Running Application 
+* [Postgresql](https://www.postgresql.org/) - Database Engine
 
 
 ## Authors

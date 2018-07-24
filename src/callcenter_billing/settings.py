@@ -11,8 +11,11 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-import json_log_formatter
 import django_heroku
+import locale
+
+# Setup Locale to hangle currency
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -26,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '1x3jtch2tv3rj!tam+8s)cqm!)&1=$q_=-dobd@fwn1lc#w)vt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.getenv('DEBUG', 1))
 
 ALLOWED_HOSTS = []
 
@@ -41,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_swagger',
+    'drf_yasg',
     'rest_framework',
 ]
 
@@ -149,7 +152,7 @@ LOGGING = {
             'format': '%(levelname)s %(message)s'
         },
         'json': {
-            '()': 'callcenter_billing.settings.CustomisedJSONFormatter',
+            '()': 'callcenter_billing.serializers.CustomisedJSONFormatter',
         }
     },
     'handlers': {
@@ -173,24 +176,4 @@ LOGGING = {
     },
 }
 
-
-class CustomisedJSONFormatter(json_log_formatter.JSONFormatter):
-
-    def mutate_json_record(self, json_record):
-        from datetime import datetime, time, timedelta
-
-        for attr_name in json_record:
-            attr = json_record[attr_name]
-            if isinstance(attr, datetime):
-                json_record[attr_name] = attr.isoformat()
-            elif isinstance(attr, time):
-                json_record[attr_name] = attr.isoformat()
-            elif isinstance(attr, timedelta):
-                json_record[attr_name] = str(attr)
-        return json_record
-
-    def json_record(self, message, extra, record):
-        extra = super().json_record(message, extra, record)
-        return extra
-
-django_heroku.settings(locals())
+django_heroku.settings(locals(), logging=False)

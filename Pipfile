@@ -6,11 +6,14 @@ verify_ssl = true
 django = "==2.0.6"
 djangorestframework = "==3.8.2"
 json_log_formatter = "==0.2.0"
-django-rest-swagger = "==2.2.0"
 "psycopg2-binary" = "==2.7.5"
 gunicorn = "*"
 django-heroku = "*"
 xmlrunner = "*"
+drf-yasg = {version = "*"}
+flex = "*"
+swagger-spec-validator = "*"
+django-filter = "*"
 
 [requires]
 python_version = "3.6"
