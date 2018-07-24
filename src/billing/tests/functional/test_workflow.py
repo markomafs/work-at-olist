@@ -96,6 +96,15 @@ def test_calculate_and_billing_one_call_using_post_only(
     body = json.loads(response.content)
     assert body['summary']['amount'] == billing_amount
 
+    # Testing Empty Billing
+    response = http.get(
+        reverse('phonenumber-billing', kwargs={'phone_number': source}),
+        data={'year': end.year-1, 'month': end.month},
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    body = response.content.decode('UTF-8')
+    assert '{"detail":"Billing Not Found"}' == body
+
 
 @pytest.mark.parametrize(
     fields,
