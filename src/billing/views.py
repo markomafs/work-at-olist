@@ -107,16 +107,6 @@ class PhoneNumberViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class CallDetailViewSet(generics.UpdateAPIView):
-    """
-    This endpoint Register End of a Call
-    """
-    serializer_class = CallSerializer
-
-    def get_queryset(self):
-        return Call.objects.all()
-
-
 class CallViewSet(generics.CreateAPIView):
     """
     This endpoint Register Calls to be billed 

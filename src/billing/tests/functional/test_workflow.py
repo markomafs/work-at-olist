@@ -51,44 +51,6 @@ def build_end_request(call_id, code, timestamp):
     cases
 )
 @pytest.mark.django_db()
-def test_calculate_and_billing_one_call(
-        call_id, source, destination, code, start, end, billing_amount):
-    request = build_start_request(call_id, source, destination, code, start)
-    response = http.post(path=reverse('call-create'), data=request)
-    assert status.is_success(response.status_code)
-
-    request = build_end_request(call_id, code, end)
-    response = http.put(
-        path=reverse('call-detail', kwargs={'pk': call_id}),
-        data=json.dumps(request),
-        content_type='application/json'
-    )
-    assert status.is_success(response.status_code)
-
-    response = http.get(
-        reverse('phonenumber-billing', kwargs={'phone_number': source}),
-        data={'year': end.year, 'month': end.month},
-    )
-    assert status.is_success(response.status_code)
-
-    body = json.loads(response.content)
-    assert body['summary']['amount'] == billing_amount
-
-    # Testing Empty Billing
-    response = http.get(
-        reverse('phonenumber-billing', kwargs={'phone_number': source}),
-        data={'year': end.year-1, 'month': end.month},
-    )
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    body = response.content.decode('UTF-8')
-    assert '{"detail":"Billing Not Found"}' == body
-
-
-@pytest.mark.parametrize(
-    fields,
-    cases
-)
-@pytest.mark.django_db()
 def test_calculate_and_billing_one_call_with_wrong_order(
         call_id, source, destination, code, start, end, billing_amount):
     request = build_end_request(call_id, code, end)
